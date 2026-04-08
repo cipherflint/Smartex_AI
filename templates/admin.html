@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Smartex Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090f;--surf:#111118;--surf2:#17171f;--surf3:#1e1e28;--border:#252535;--border2:#32324a;
+--accent:#7c6aff;--accent2:#a78bfa;--a3:#c4b5fd;--glow:rgba(124,106,255,.18);
+--text:#e8e6ff;--t2:#9d9bc0;--t3:#5a5880;--err:#ff4f6a;--ok:#34d399;--warn:#fbbf24;--r:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+
+/* ── Login ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login-card{width:360px;background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:36px 32px;}
+.llogo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.lm{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#a855f7);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 18px var(--glow);}
+.ln{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--a3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.badge{background:rgba(255,79,106,.15);border:1px solid rgba(255,79,106,.3);color:var(--err);font-size:10px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:20px;margin-left:6px;}
+.fg{margin-bottom:14px;}
+label{display:block;font-size:11px;font-weight:500;color:var(--t2);margin-bottom:5px;letter-spacing:.3px;}
+input,select,textarea{width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+input::placeholder,textarea::placeholder{color:var(--t3);}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;border:none;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;box-shadow:0 4px 14px var(--glow);}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-danger{background:rgba(255,79,106,.1);color:var(--err);border:1px solid rgba(255,79,106,.25);}
+.btn-danger:hover{background:rgba(255,79,106,.2);border-color:var(--err);}
+.btn-sm{padding:5px 10px;font-size:11.5px;}
+.btn-ghost{background:var(--surf2);color:var(--t2);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent2);}
+.err-box{background:rgba(255,79,106,.08);border:1px solid rgba(255,79,106,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--err);margin-top:10px;}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:220px;min-width:220px;background:var(--surf);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0;}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.sb-ln{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--a3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sb-badge{background:rgba(255,79,106,.15);border:1px solid rgba(255,79,106,.3);color:var(--err);font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:10px;}
+nav{flex:1;padding:10px 8px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--t2);border:none;background:transparent;width:100%;text-align:left;}
+.nav-item:hover{background:var(--surf2);color:var(--text);}
+.nav-item.active{background:rgba(124,106,255,.12);color:var(--accent2);border:1px solid rgba(124,106,255,.25);}
+.nav-icon{width:18px;height:18px;flex-shrink:0;}
+.sb-bottom{padding:10px 8px;border-top:1px solid var(--border);}
+
+.content{flex:1;overflow-y:auto;padding:28px 32px;}
+.page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.page-sub{font-size:13px;color:var(--t2);margin-bottom:24px;}
+
+/* ── Stats cards ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent2);}
+.stat-lbl{font-size:11px;color:var(--t2);margin-top:3px;}
+
+/* ── Sections ── */
+.section{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;overflow:hidden;}
+.sec-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sec-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+.sec-body{padding:18px;}
+
+/* ── Key rows ── */
+.key-row{display:flex;gap:8px;margin-bottom:8px;}
+.key-input-wrap{flex:1;display:flex;align-items:center;gap:6px;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;}
+.k-num{font-size:10px;font-family:'DM Mono',monospace;color:var(--t3);min-width:20px;}
+.key-field{background:transparent;border:none;flex:1;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;}
+.key-field::placeholder{color:var(--t3);}
+.k-status{width:8px;height:8px;border-radius:50%;background:var(--border2);}
+.k-status.filled{background:var(--ok);box-shadow:0 0 5px rgba(52,211,153,.5);}
+.key-del{width:22px;height:22px;border-radius:5px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);flex-shrink:0;}
+.key-del:hover{color:var(--err);background:rgba(255,79,106,.1);}
+.add-key-btn{width:100%;padding:7px;border:1px dashed var(--border2);border-radius:8px;background:transparent;color:var(--t3);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px;}
+.add-key-btn:hover{border-color:var(--accent);color:var(--accent2);}
+.save-row{margin-top:12px;display:flex;align-items:center;gap:10px;}
+.save-ok{font-size:11px;color:var(--ok);opacity:0;transition:opacity .3s;font-family:'DM Mono',monospace;}
+.save-ok.show{opacity:1;}
+
+/* ── Table ── */
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);padding:8px 12px;font-family:'DM Mono',monospace;border-bottom:1px solid var(--border);}
+td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border);color:var(--t2);}
+td:first-child{color:var(--text);font-weight:500;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(124,106,255,.03);}
+
+/* ── Model add form ── */
+.model-form{display:grid;grid-template-columns:2fr 2fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:14px;}
+.model-form .fg{margin-bottom:0;}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:4px;margin-bottom:18px;}
+.tab{padding:6px 14px;border-radius:8px;font-size:12.5px;cursor:pointer;border:1px solid transparent;transition:all .15s;color:var(--t2);}
+.tab:hover{color:var(--text);}
+.tab.active{background:rgba(124,106,255,.12);border-color:rgba(124,106,255,.3);color:var(--accent2);}
+
+/* ── Toast ── */
+.toast{position:fixed;top:20px;right:20px;padding:10px 18px;border-radius:10px;font-size:12.5px;z-index:999;transform:translateX(120%);transition:transform .3s;max-width:320px;}
+.toast.show{transform:translateX(0);}
+.toast.ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:var(--ok);}
+.toast.err{background:rgba(255,79,106,.12);border:1px solid rgba(255,79,106,.3);color:var(--err);}
+
+/* Hidden sections */
+.panel{display:none;}.panel.active{display:block;}
+
+/* Password change */
+.pw-form{max-width:340px;display:flex;flex-direction:column;gap:12px;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+{% if page == "login" %}
+<!-- ════════════════ LOGIN PAGE ════════════════ -->
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="llogo">
+      <div class="lm">⚡</div>
+      <span class="ln">Smartex Admin</span>
+      <span class="badge">ADMIN</span>
+    </div>
+    <form method="POST">
+      <div class="fg">
+        <label>Admin Password</label>
+        <input type="password" name="password" placeholder="Enter admin password" autofocus/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Sign In</button>
+      {% if error %}<div class="err-box">{{ error }}</div>{% endif %}
+    </form>
+    <div style="margin-top:16px;font-size:11px;color:var(--t3);text-align:center;">Default password: <code>admin123</code> — change after first login</div>
+  </div>
+</div>
+
+{% else %}
+<!-- ════════════════ DASHBOARD ════════════════ -->
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="lm" style="width:28px;height:28px;font-size:13px;">⚡</div>
+      <span class="sb-ln">Smartex</span>
+      <span class="sb-badge">ADMIN</span>
+    </div>
+    <nav>
+      <button class="nav-item active" id="nav-overview" onclick="showPanel('overview')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </button>
+      <button class="nav-item" id="nav-keys" onclick="showPanel('keys')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        API Keys
+      </button>
+      <button class="nav-item" id="nav-models" onclick="showPanel('models')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M11 7h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>
+        AI Models
+      </button>
+      <button class="nav-item" id="nav-users" onclick="showPanel('users')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Users
+      </button>
+      <button class="nav-item" id="nav-settings" onclick="showPanel('settings')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sb-bottom">
+      <a href="/logout" class="nav-item" style="text-decoration:none;color:var(--err);">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- ── OVERVIEW ── -->
+    <div class="panel active" id="panel-overview">
+      <div class="page-title">Overview</div>
+      <div class="page-sub">Smartex AI admin dashboard</div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-users">{{ stats.users }}</div>
+          <div class="stat-lbl">Registered Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-or">{{ stats.or_keys }}</div>
+          <div class="stat-lbl">OpenRouter Keys</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-groq">{{ stats.groq_keys }}</div>
+          <div class="stat-lbl">Groq Keys</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-models">{{ stats.custom_models }}</div>
+          <div class="stat-lbl">Custom Models</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="sec-hdr">
+          <span class="sec-title">Quick Actions</span>
+        </div>
+        <div class="sec-body" style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-ghost" onclick="showPanel('keys')">⚡ Manage API Keys</button>
+          <button class="btn btn-ghost" onclick="showPanel('models')">🤖 Add AI Model</button>
+          <button class="btn btn-ghost" onclick="showPanel('users')">👥 View Users</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">How to Use</span></div>
+        <div class="sec-body" style="font-size:13px;color:var(--t2);line-height:1.8;">
+          <b style="color:var(--text);">1. Add API Keys</b> → Go to API Keys tab. Add OpenRouter keys and/or Groq keys. These are shared for all users.<br>
+          <b style="color:var(--text);">2. Add Models</b> → Go to AI Models. Add any model by its ID from OpenRouter or Groq.<br>
+          <b style="color:var(--text);">3. Users</b> → Users only see the chat interface. They cannot see API keys. You can delete any user here.<br>
+          <b style="color:var(--text);">Main app</b> → <a href="http://localhost:5000" target="_blank" style="color:var(--accent2);">localhost:5000</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── API KEYS ── -->
+    <div class="panel" id="panel-keys">
+      <div class="page-title">API Keys</div>
+      <div class="page-sub">Keys are stored locally and never shown to users.</div>
+
+      <!-- OpenRouter -->
+      <div class="section">
+        <div class="sec-hdr">
+          <span class="sec-title">OpenRouter Keys</span>
+          <span style="font-size:11px;color:var(--t3);">openrouter.ai</span>
+        </div>
+        <div class="sec-body">
+          <div id="or-keys-list"></div>
+          <button class="add-key-btn" onclick="addKeyRow('or')">+ Add OpenRouter Key</button>
+          <div class="save-row">
+            <button class="btn btn-primary btn-sm" onclick="saveKeys('or')">Save OpenRouter Keys</button>
+            <span class="save-ok" id="or-save-ok">✓ Saved!</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Groq -->
+      <div class="section">
+        <div class="sec-hdr">
+          <span class="sec-title">Groq Keys</span>
+          <span style="font-size:11px;color:var(--t3);">console.groq.com</span>
+        </div>
+        <div class="sec-body">
+          <div id="groq-keys-list"></div>
+          <button class="add-key-btn" onclick="addKeyRow('groq')">+ Add Groq Key</button>
+          <div class="save-row">
+            <button class="btn btn-primary btn-sm" onclick="saveKeys('groq')">Save Groq Keys</button>
+            <span class="save-ok" id="groq-save-ok">✓ Saved!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MODELS ── -->
+    <div class="panel" id="panel-models">
+      <div class="page-title">AI Models</div>
+      <div class="page-sub">Add custom models by their API model ID. Built-in models are always available.</div>
+
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">Add Custom Model</span></div>
+        <div class="sec-body">
+          <div class="model-form">
+            <div class="fg">
+              <label>Model ID (exact API id)</label>
+              <input id="m-id" placeholder="e.g. mistralai/mistral-large"/>
+            </div>
+            <div class="fg">
+              <label>Display Name</label>
+              <input id="m-name" placeholder="e.g. Mistral Large"/>
+            </div>
+            <div class="fg">
+              <label>Provider</label>
+              <select id="m-provider">
+                <option value="openrouter">OpenRouter</option>
+                <option value="groq">Groq</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Tag (optional)</label>
+              <input id="m-tag" placeholder="free / fast / new"/>
+            </div>
+            <button class="btn btn-primary" onclick="addModel()" style="align-self:flex-end;">Add</button>
+          </div>
+          <div id="model-err" style="display:none;" class="err-box"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">Custom Models</span></div>
+        <div class="sec-body" style="padding:0;">
+          <table id="custom-models-table">
+            <thead><tr><th>Model ID</th><th>Name</th><th>Provider</th><th>Tag</th><th>Action</th></tr></thead>
+            <tbody id="custom-models-tbody"></tbody>
+          </table>
+          <div id="no-custom-models" style="padding:18px;text-align:center;color:var(--t3);font-size:13px;display:none;">No custom models added yet.</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">Built-in Models (always available)</span></div>
+        <div class="sec-body" style="padding:0;">
+          <table>
+            <thead><tr><th>Model ID</th><th>Name</th><th>Provider</th><th>Tag</th></tr></thead>
+            <tbody>
+              <tr><td>openai/gpt-4o-mini</td><td>GPT-4o Mini</td><td>openrouter</td><td>free</td></tr>
+              <tr><td>meta-llama/llama-3.3-70b-instruct:free</td><td>Llama 3.3 70B (Free)</td><td>openrouter</td><td>free</td></tr>
+              <tr><td>google/gemini-2.0-flash-exp:free</td><td>Gemini 2.0 Flash (Free)</td><td>openrouter</td><td>free</td></tr>
+              <tr><td>deepseek/deepseek-r1:free</td><td>DeepSeek R1 (Free)</td><td>openrouter</td><td>free</td></tr>
+              <tr><td>anthropic/claude-sonnet-4-5</td><td>Claude Sonnet 4</td><td>openrouter</td><td></td></tr>
+              <tr><td>llama-3.3-70b-versatile</td><td>Llama 3.3 70B (Groq)</td><td>groq</td><td>fast</td></tr>
+              <tr><td>llama-3.1-8b-instant</td><td>Llama 3.1 8B (Groq)</td><td>groq</td><td>fast</td></tr>
+              <tr><td>deepseek-r1-distill-llama-70b</td><td>DeepSeek R1 70B (Groq)</td><td>groq</td><td>fast</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div class="panel" id="panel-users">
+      <div class="page-title">Users</div>
+      <div class="page-sub">Manage registered user accounts.</div>
+      <div class="section">
+        <div class="sec-hdr">
+          <span class="sec-title">All Users</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+        <div class="sec-body" style="padding:0;">
+          <table>
+            <thead><tr><th>Username</th><th>Chats</th><th>Joined</th><th>Action</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+          <div id="no-users" style="padding:18px;text-align:center;color:var(--t3);font-size:13px;display:none;">No users registered.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="panel" id="panel-settings">
+      <div class="page-title">Settings</div>
+      <div class="page-sub">Admin account settings.</div>
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">Change Admin Password</span></div>
+        <div class="sec-body">
+          <div class="pw-form">
+            <div class="fg"><label>New Password</label><input type="password" id="new-pw" placeholder="min 6 characters"/></div>
+            <div class="fg"><label>Confirm Password</label><input type="password" id="new-pw2" placeholder="repeat password"/></div>
+            <button class="btn btn-primary" onclick="changeAdminPw()" style="width:fit-content;">Change Password</button>
+            <div id="pw-err" class="err-box" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endif %}
+
+<script>
+// ── Panel navigation ──────────────────────────────────────────────────────────
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='keys') loadKeysUI();
+  if(name==='models') loadCustomModels();
+  if(name==='users') loadUsers();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── API Keys UI ───────────────────────────────────────────────────────────────
+let orKeys = [], groqKeys = [];
+
+async function loadKeysUI(){
+  const r = await fetch('/api/config/get');
+  const d = await r.json();
+  orKeys = Array(d.or_key_count).fill('');
+  groqKeys = Array(d.groq_key_count).fill('');
+  renderKeyList('or', orKeys);
+  renderKeyList('groq', groqKeys);
+}
+
+function renderKeyList(type, keys){
+  const list = document.getElementById(type+'-keys-list');
+  list.innerHTML = '';
+  if(!keys.length){ keys.push(''); }
+  keys.forEach((k,i)=>{
+    const row = document.createElement('div');
+    row.className='key-row';
+    row.innerHTML=`
+      <div class="key-input-wrap">
+        <span class="k-num">${i+1}</span>
+        <input class="key-field" type="password" placeholder="${type==='or'?'sk-or-...':'gsk_...'}"
+          value="${k}" oninput="updateKey('${type}',${i},this.value)" autocomplete="off"/>
+        <div class="k-status ${k?'filled':''}"></div>
+      </div>
+      <button class="key-del btn" onclick="removeKey('${type}',${i})">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    list.appendChild(row);
+  });
+}
+
+function updateKey(type,i,val){
+  if(type==='or') orKeys[i]=val; else groqKeys[i]=val;
+  const rows=document.getElementById(type+'-keys-list').querySelectorAll('.k-status');
+  rows[i].className='k-status'+(val?' filled':'');
+}
+
+function addKeyRow(type){
+  if(type==='or') orKeys.push(''); else groqKeys.push('');
+  renderKeyList(type, type==='or'?orKeys:groqKeys);
+}
+
+function removeKey(type,i){
+  if(type==='or') orKeys.splice(i,1); else groqKeys.splice(i,1);
+  renderKeyList(type, type==='or'?orKeys:groqKeys);
+}
+
+async function saveKeys(type){
+  // Read actual values from inputs
+  const inputs = document.querySelectorAll(`#${type}-keys-list .key-field`);
+  const keys = [...inputs].map(i=>i.value.trim()).filter(Boolean);
+  const endpoint = type==='or'?'/api/keys/openrouter':'/api/keys/groq';
+  const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keys})});
+  const d = await r.json();
+  if(d.ok){
+    const okEl=document.getElementById(type+'-save-ok');
+    okEl.classList.add('show');
+    setTimeout(()=>okEl.classList.remove('show'),2500);
+    toast(`${type==='or'?'OpenRouter':'Groq'} keys saved (${d.count} keys)`);
+  } else {
+    toast(d.error||'Save failed','err');
+  }
+}
+
+// ── Models ────────────────────────────────────────────────────────────────────
+async function loadCustomModels(){
+  const r=await fetch('/api/config/get');
+  const d=await r.json();
+  const tbody=document.getElementById('custom-models-tbody');
+  const noEl=document.getElementById('no-custom-models');
+  const table=document.getElementById('custom-models-table');
+  tbody.innerHTML='';
+  if(!d.custom_models||!d.custom_models.length){
+    noEl.style.display='';table.style.display='none';return;
+  }
+  noEl.style.display='none';table.style.display='';
+  d.custom_models.forEach(m=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="font-family:'DM Mono',monospace;font-size:12px;">${esc(m.id)}</td>
+      <td>${esc(m.name)}</td><td>${esc(m.provider||'openrouter')}</td>
+      <td><span style="background:rgba(124,106,255,.12);color:var(--accent2);border-radius:4px;padding:2px 7px;font-size:10px;">${esc(m.tag||'')}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeModel('${esc(m.id)}')">Remove</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function addModel(){
+  const id=document.getElementById('m-id').value.trim();
+  const name=document.getElementById('m-name').value.trim();
+  const provider=document.getElementById('m-provider').value;
+  const tag=document.getElementById('m-tag').value.trim();
+  const errEl=document.getElementById('model-err');
+  errEl.style.display='none';
+  if(!id||!name){errEl.style.display='';errEl.textContent='Model ID and Name are required.';return;}
+  const r=await fetch('/api/models/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,name,provider,tag})});
+  const d=await r.json();
+  if(d.ok){
+    document.getElementById('m-id').value='';document.getElementById('m-name').value='';document.getElementById('m-tag').value='';
+    loadCustomModels();toast('Model added: '+name);
+    document.getElementById('stat-models').textContent=parseInt(document.getElementById('stat-models').textContent)+1;
+  } else {
+    errEl.style.display='';errEl.textContent=d.error||'Failed to add model.';
+  }
+}
+
+async function removeModel(id){
+  if(!confirm(`Remove model "${id}"?`))return;
+  const r=await fetch('/api/models/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  const d=await r.json();
+  if(d.ok){loadCustomModels();toast('Model removed.');
+    const el=document.getElementById('stat-models');el.textContent=Math.max(0,parseInt(el.textContent)-1);
+  } else toast(d.error||'Failed','err');
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+async function loadUsers(){
+  const r=await fetch('/api/users/list');
+  const d=await r.json();
+  const tbody=document.getElementById('users-tbody');
+  const noEl=document.getElementById('no-users');
+  tbody.innerHTML='';
+  if(!d.users||!d.users.length){noEl.style.display='';return;}
+  noEl.style.display='none';
+  d.users.forEach(u=>{
+    const tr=document.createElement('tr');
+    const joined=u.created_at?new Date(u.created_at*1000).toLocaleDateString():'—';
+    tr.innerHTML=`<td>@${esc(u.username)}</td><td>${u.chats}</td><td>${joined}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u.username)}')">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('stat-users').textContent=d.users.length;
+}
+
+async function deleteUser(username){
+  if(!confirm(`Delete user "${username}" and all their chats? This cannot be undone.`))return;
+  const r=await fetch('/api/users/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
+  const d=await r.json();
+  if(d.ok){loadUsers();toast(`User @${username} deleted.`);}
+  else toast(d.error||'Failed','err');
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+async function changeAdminPw(){
+  const p1=document.getElementById('new-pw').value;
+  const p2=document.getElementById('new-pw2').value;
+  const errEl=document.getElementById('pw-err');
+  errEl.style.display='none';
+  if(p1!==p2){errEl.style.display='';errEl.textContent='Passwords do not match.';return;}
+  if(p1.length<6){errEl.style.display='';errEl.textContent='Password min 6 characters.';return;}
+  const r=await fetch('/api/admin/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p1})});
+  const d=await r.json();
+  if(d.ok){document.getElementById('new-pw').value='';document.getElementById('new-pw2').value='';toast('Admin password changed!');}
+  else {errEl.style.display='';errEl.textContent=d.error||'Failed.';}
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>

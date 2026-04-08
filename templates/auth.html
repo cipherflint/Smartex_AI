@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smartex AI — Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Theme tokens ── */
+:root{
+  --bg:#0a0a0f;--surface:#111118;--surface2:#16161f;--surface3:#1e1e2a;
+  --border:#2a2a3a;--border2:#353550;
+  --accent:#7c6aff;--accent2:#a78bfa;--accent3:#c4b5fd;
+  --glow:rgba(124,106,255,0.18);
+  --text:#e8e6ff;--text2:#9d9bc0;--text3:#5a5880;
+  --error:#ff4f6a;--success:#34d399;
+  --radius:14px;
+}
+@media(prefers-color-scheme:light){
+  :root{
+    --bg:#f3f2ff;--surface:#ffffff;--surface2:#f0eeff;--surface3:#e8e4ff;
+    --border:#d4cfff;--border2:#bcb5f0;
+    --accent:#6c59f5;--accent2:#7c6aff;--accent3:#5a45e8;
+    --glow:rgba(108,89,245,0.15);
+    --text:#1a1730;--text2:#4a4470;--text3:#9590b8;
+    --error:#d63251;--success:#16a068;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+
+.page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+
+/* noise overlay */
+.page::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
+
+.card{position:relative;z-index:1;width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 32px 32px;box-shadow:0 20px 60px rgba(0,0,0,.18);}
+
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#a855f7);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 18px var(--glow);}
+.logo-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.tabs{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:24px;}
+.tab{flex:1;padding:7px;border:none;border-radius:8px;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px var(--glow);}
+
+.form-group{margin-bottom:14px;}
+label{display:block;font-size:11.5px;font-weight:500;color:var(--text2);margin-bottom:5px;letter-spacing:.3px;}
+input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;padding:10px 13px;outline:none;transition:border-color .2s,box-shadow .2s;}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
+input::placeholder{color:var(--text3);}
+
+.hint{font-size:10.5px;color:var(--text3);margin-top:4px;}
+
+.submit-btn{width:100%;margin-top:6px;padding:11px;background:linear-gradient(135deg,var(--accent),#a855f7);border:none;border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .22s;box-shadow:0 4px 15px var(--glow);}
+.submit-btn:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 6px 20px var(--glow);}
+.submit-btn:active{transform:translateY(0);}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+.error-box{background:rgba(255,79,106,.09);border:1px solid rgba(255,79,106,.3);border-radius:9px;padding:9px 12px;font-size:12.5px;color:var(--error);margin-top:12px;display:none;}
+.error-box.show{display:block;}
+
+.footer-note{text-align:center;font-size:11px;color:var(--text3);margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-mark">✦</div>
+      <span class="logo-name">Smartex AI</span>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" onclick="showTab('login')">Sign In</button>
+      <button class="tab" id="tabRegister" onclick="showTab('register')">Create Account</button>
+    </div>
+
+    <!-- Login form -->
+    <div id="formLogin">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="loginUser" placeholder="your username" autocomplete="username" autocapitalize="none"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="submit-btn" id="btnLogin" onclick="doLogin()">Sign In</button>
+      <div class="error-box" id="loginErr"></div>
+    </div>
+
+    <!-- Register form -->
+    <div id="formRegister" style="display:none;">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="regUser" placeholder="choose a username" autocomplete="username" autocapitalize="none"/>
+        <div class="hint">3–20 chars, letters/numbers/- _ only</div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="regPass" placeholder="min 6 characters" autocomplete="new-password"/>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="regPass2" placeholder="repeat password" autocomplete="new-password"/>
+      </div>
+      <button class="submit-btn" id="btnRegister" onclick="doRegister()">Create Account</button>
+      <div class="error-box" id="regErr"></div>
+    </div>
+
+    <div class="footer-note">Your chats are stored locally on this machine only.</div>
+  </div>
+</div>
+<script>
+function showTab(t){
+  document.getElementById('formLogin').style.display=t==='login'?'':'none';
+  document.getElementById('formRegister').style.display=t==='register'?'':'none';
+  document.getElementById('tabLogin').classList.toggle('active',t==='login');
+  document.getElementById('tabRegister').classList.toggle('active',t==='register');
+  document.getElementById('loginErr').classList.remove('show');
+  document.getElementById('regErr').classList.remove('show');
+}
+
+function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.classList.add('show');}
+
+async function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(!u||!p){showErr('loginErr','Please enter username and password.');return;}
+  const btn=document.getElementById('btnLogin');
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const d=await r.json();
+    if(d.ok){window.location.href='/';}
+    else{showErr('loginErr',d.error||'Login failed.');}
+  }catch(e){showErr('loginErr','Network error.');}
+  btn.disabled=false;btn.textContent='Sign In';
+}
+
+async function doRegister(){
+  const u=document.getElementById('regUser').value.trim();
+  const p=document.getElementById('regPass').value;
+  const p2=document.getElementById('regPass2').value;
+  if(!u||!p){showErr('regErr','Please fill all fields.');return;}
+  if(p!==p2){showErr('regErr','Passwords do not match.');return;}
+  const btn=document.getElementById('btnRegister');
+  btn.disabled=true;btn.textContent='Creating account…';
+  try{
+    const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const d=await r.json();
+    if(d.ok){window.location.href='/';}
+    else{showErr('regErr',d.error||'Registration failed.');}
+  }catch(e){showErr('regErr','Network error.');}
+  btn.disabled=false;btn.textContent='Create Account';
+}
+
+// Enter key support
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(document.getElementById('formLogin').style.display!=='none')doLogin();
+  else doRegister();
+});
+</script>
+</body>
+</html>
