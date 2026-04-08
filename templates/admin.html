@@ -167,7 +167,7 @@ tr:hover td{background:rgba(124,106,255,.03);}
       </button>
     </nav>
     <div class="sb-bottom">
-      <a href="/logout" class="nav-item" style="text-decoration:none;color:var(--err);">
+      <a href="/admin/logout" class="nav-item" style="text-decoration:none;color:var(--err);">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Sign Out
       </a>
@@ -386,7 +386,7 @@ function toast(msg, type='ok'){
 let orKeys = [], groqKeys = [];
 
 async function loadKeysUI(){
-  const r = await fetch('/api/config/get');
+  const r = await fetch('/admin/api/config/get');
   const d = await r.json();
   orKeys = Array(d.or_key_count).fill('');
   groqKeys = Array(d.groq_key_count).fill('');
@@ -435,7 +435,7 @@ async function saveKeys(type){
   // Read actual values from inputs
   const inputs = document.querySelectorAll(`#${type}-keys-list .key-field`);
   const keys = [...inputs].map(i=>i.value.trim()).filter(Boolean);
-  const endpoint = type==='or'?'/api/keys/openrouter':'/api/keys/groq';
+  const endpoint = type==='or'?'/admin/api/keys/openrouter':'/admin/api/keys/groq';
   const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keys})});
   const d = await r.json();
   if(d.ok){
@@ -450,7 +450,7 @@ async function saveKeys(type){
 
 // ── Models ────────────────────────────────────────────────────────────────────
 async function loadCustomModels(){
-  const r=await fetch('/api/config/get');
+  const r=await fetch('/admin/api/config/get');
   const d=await r.json();
   const tbody=document.getElementById('custom-models-tbody');
   const noEl=document.getElementById('no-custom-models');
@@ -478,7 +478,7 @@ async function addModel(){
   const errEl=document.getElementById('model-err');
   errEl.style.display='none';
   if(!id||!name){errEl.style.display='';errEl.textContent='Model ID and Name are required.';return;}
-  const r=await fetch('/api/models/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,name,provider,tag})});
+  const r=await fetch('/admin/api/models/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,name,provider,tag})});
   const d=await r.json();
   if(d.ok){
     document.getElementById('m-id').value='';document.getElementById('m-name').value='';document.getElementById('m-tag').value='';
@@ -491,7 +491,7 @@ async function addModel(){
 
 async function removeModel(id){
   if(!confirm(`Remove model "${id}"?`))return;
-  const r=await fetch('/api/models/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+  const r=await fetch('/admin/api/models/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
   const d=await r.json();
   if(d.ok){loadCustomModels();toast('Model removed.');
     const el=document.getElementById('stat-models');el.textContent=Math.max(0,parseInt(el.textContent)-1);
@@ -500,7 +500,7 @@ async function removeModel(id){
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 async function loadUsers(){
-  const r=await fetch('/api/users/list');
+  const r=await fetch('/admin/api/users/list');
   const d=await r.json();
   const tbody=document.getElementById('users-tbody');
   const noEl=document.getElementById('no-users');
@@ -519,7 +519,7 @@ async function loadUsers(){
 
 async function deleteUser(username){
   if(!confirm(`Delete user "${username}" and all their chats? This cannot be undone.`))return;
-  const r=await fetch('/api/users/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
+  const r=await fetch('/admin/api/users/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
   const d=await r.json();
   if(d.ok){loadUsers();toast(`User @${username} deleted.`);}
   else toast(d.error||'Failed','err');
@@ -533,7 +533,7 @@ async function changeAdminPw(){
   errEl.style.display='none';
   if(p1!==p2){errEl.style.display='';errEl.textContent='Passwords do not match.';return;}
   if(p1.length<6){errEl.style.display='';errEl.textContent='Password min 6 characters.';return;}
-  const r=await fetch('/api/admin/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p1})});
+  const r=await fetch('/admin/api/admin/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:p1})});
   const d=await r.json();
   if(d.ok){document.getElementById('new-pw').value='';document.getElementById('new-pw2').value='';toast('Admin password changed!');}
   else {errEl.style.display='';errEl.textContent=d.error||'Failed.';}
