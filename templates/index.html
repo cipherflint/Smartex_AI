@@ -223,16 +223,15 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast.err{background:rgba(255,79,106,.14);border:1px solid rgba(255,79,106,.38);color:#ff8fa3;}
 .toast.ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.32);color:var(--success);}
-.mob-tog{display:none;position:fixed;top:12px;left:12px;z-index:50;width:32px;height:32px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;align-items:center;justify-content:center;color:var(--text2);}
+
 @media(max-width:900px){
   .layout{height:100dvh;height:100vh;}
   .hs{position:fixed;left:-280px;top:0;bottom:0;z-index:40;transition:left .3s ease;width:var(--hw)!important;min-width:var(--hw)!important;}
   .hs.mob-open{left:0!important;}
   .hs.collapsed{left:-280px!important;}
-  .mob-tog{display:flex;}
   .chat-container{padding:12px 13px;}
   .input-area{padding:8px 12px calc(12px + env(safe-area-inset-bottom, 0px));}
-  .topbar{padding:10px 12px 10px 50px;}
+  .topbar{padding:10px 12px;}
   .model-sel{max-width:130px;font-size:10px;}
   .message{max-width:92%;}
   .bubble{font-size:13px;}
@@ -408,7 +407,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     </div>
   </main>
 </div>
-<button class="mob-tog" onclick="toggleMobile()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+
 
 <script>
 const CURRENT_USER = "{{ username }}";
@@ -435,7 +434,6 @@ function showOk(msg){const t=document.getElementById('okToast');t.textContent=ms
 function toggleSettings(){const p=document.getElementById('settingsPanel'),o=document.getElementById('spOverlay'),b=document.getElementById('settingsBtn'),open=p.classList.contains('open');p.classList.toggle('open',!open);o.classList.toggle('show',!open);b.classList.toggle('active',!open);}
 function closeSettings(){document.getElementById('settingsPanel').classList.remove('open');document.getElementById('spOverlay').classList.remove('show');document.getElementById('settingsBtn').classList.remove('active');}
 function toggleHS(){const hs=document.getElementById('hs');if(window.innerWidth<=900)hs.classList.toggle('mob-open');else hs.classList.toggle('collapsed');}
-function toggleMobile(){document.getElementById('hs').classList.toggle('mob-open');}
 function applyPreset(chip){document.querySelectorAll('.pc').forEach(c=>c.classList.remove('active'));chip.classList.add('active');document.getElementById('sysPr').value=chip.dataset.p;}
 
 // ── Account ───────────────────────────────────────────────────────────────────
