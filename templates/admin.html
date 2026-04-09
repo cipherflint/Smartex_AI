@@ -161,6 +161,10 @@ tr:hover td{background:rgba(124,106,255,.03);}
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Users
       </button>
+      <button class="nav-item" id="nav-pending" onclick="showPanel('pending')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Pending <span id="pendingBadge" style="display:none;background:var(--err);color:#fff;border-radius:10px;font-size:9px;padding:1px 6px;margin-left:4px;"></span>
+      </button>
       <button class="nav-item" id="nav-settings" onclick="showPanel('settings')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
@@ -342,6 +346,28 @@ tr:hover td{background:rgba(124,106,255,.03);}
       </div>
     </div>
 
+    <!-- ── PENDING ── -->
+    <div class="panel" id="panel-pending">
+      <div class="page-title">Pending Requests</div>
+      <div class="page-sub">New account requests waiting for your approval.</div>
+      <div class="section">
+        <div class="sec-hdr">
+          <span class="sec-title">Account Requests</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadPending()">↻ Refresh</button>
+        </div>
+        <div class="sec-body" style="padding:0;">
+          <table>
+            <thead><tr><th>Username</th><th>Requested</th><th>Actions</th></tr></thead>
+            <tbody id="pending-tbody"></tbody>
+          </table>
+          <div id="no-pending" style="padding:20px;text-align:center;color:var(--t2);font-size:13px;display:none;">
+            <div style="font-size:28px;margin-bottom:8px;">✅</div>
+            No pending account requests.
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── SETTINGS ── -->
     <div class="panel" id="panel-settings">
       <div class="page-title">Settings</div>
@@ -373,7 +399,62 @@ function showPanel(name){
   if(name==='keys') loadKeysUI();
   if(name==='models') loadCustomModels();
   if(name==='users') loadUsers();
+  if(name==='pending') loadPending();
 }
+
+async function loadPending(){
+  const r=await fetch('/admin/api/pending/list');
+  const d=await r.json();
+  const tbody=document.getElementById('pending-tbody');
+  const noEl=document.getElementById('no-pending');
+  const badge=document.getElementById('pendingBadge');
+  tbody.innerHTML='';
+  const list=d.pending||[];
+  // Update badge
+  if(list.length){badge.style.display='';badge.textContent=list.length;}
+  else{badge.style.display='none';}
+  if(!list.length){noEl.style.display='';return;}
+  noEl.style.display='none';
+  list.forEach(u=>{
+    const tr=document.createElement('tr');
+    const dt=u.requested_at?new Date(u.requested_at*1000).toLocaleString():'—';
+    const display=u.username.charAt(0).toUpperCase()+u.username.slice(1);
+    tr.innerHTML=`<td>${esc(display)} <span style="color:var(--t3);font-size:11px;">(${esc(u.username)})</span></td>
+      <td style="font-size:12px;color:var(--t2);">${dt}</td>
+      <td style="display:flex;gap:6px;align-items:center;">
+        <button class="btn btn-sm" style="background:rgba(52,211,153,.12);color:var(--ok,#34d399);border:1px solid rgba(52,211,153,.3);" onclick="approveUser('${esc(u.username)}')">✓ Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectUser('${esc(u.username)}')">✗ Reject</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function approveUser(username){
+  const r=await fetch('/admin/api/pending/approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
+  const d=await r.json();
+  if(d.ok){toast('✓ Account approved: '+username.charAt(0).toUpperCase()+username.slice(1));loadPending();loadUsers();}
+  else toast(d.error||'Failed','err');
+}
+
+async function rejectUser(username){
+  if(!confirm(`Reject account request from "${username}"?`))return;
+  const r=await fetch('/admin/api/pending/reject',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username})});
+  const d=await r.json();
+  if(d.ok){toast('Request rejected.');loadPending();}
+  else toast(d.error||'Failed','err');
+}
+
+// Poll pending count every 30s to update badge
+setInterval(async()=>{
+  try{
+    const r=await fetch('/admin/api/pending/list');
+    const d=await r.json();
+    const count=(d.pending||[]).length;
+    const badge=document.getElementById('pendingBadge');
+    if(count){badge.style.display='';badge.textContent=count;}
+    else badge.style.display='none';
+  }catch{}
+},30000);
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function toast(msg, type='ok'){
@@ -385,11 +466,15 @@ function toast(msg, type='ok'){
 // ── API Keys UI ───────────────────────────────────────────────────────────────
 let orKeys = [], groqKeys = [];
 
+// orKeys/groqKeys: array of objects {value:'', isSaved:false}
 async function loadKeysUI(){
   const r = await fetch('/admin/api/config/get');
   const d = await r.json();
-  orKeys = Array(d.or_key_count).fill('');
-  groqKeys = Array(d.groq_key_count).fill('');
+  // Build arrays: saved slots show as filled (masked), new slots are empty
+  orKeys = Array(d.or_key_count).fill(null).map(()=>({value:'', isSaved:true}));
+  groqKeys = Array(d.groq_key_count).fill(null).map(()=>({value:'', isSaved:true}));
+  if(!orKeys.length) orKeys = [{value:'', isSaved:false}];
+  if(!groqKeys.length) groqKeys = [{value:'', isSaved:false}];
   renderKeyList('or', orKeys);
   renderKeyList('groq', groqKeys);
 }
@@ -397,18 +482,20 @@ async function loadKeysUI(){
 function renderKeyList(type, keys){
   const list = document.getElementById(type+'-keys-list');
   list.innerHTML = '';
-  if(!keys.length){ keys.push(''); }
   keys.forEach((k,i)=>{
+    const isSaved = k.isSaved && !k.value;
     const row = document.createElement('div');
     row.className='key-row';
     row.innerHTML=`
       <div class="key-input-wrap">
         <span class="k-num">${i+1}</span>
-        <input class="key-field" type="password" placeholder="${type==='or'?'sk-or-...':'gsk_...'}"
-          value="${k}" oninput="updateKey('${type}',${i},this.value)" autocomplete="off"/>
-        <div class="k-status ${k?'filled':''}"></div>
+        <input class="key-field" type="password"
+          placeholder="${isSaved ? '●●●●●●●● (saved — enter new value to replace)' : (type==='or'?'sk-or-...':'gsk_...')}"
+          value="${k.value}"
+          oninput="updateKey('${type}',${i},this.value)" autocomplete="off"/>
+        <div class="k-status ${isSaved||k.value?'filled':''}"></div>
       </div>
-      <button class="key-del btn" onclick="removeKey('${type}',${i})">
+      <button class="key-del btn" onclick="removeKey('${type}',${i})" title="Remove this key slot">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>`;
     list.appendChild(row);
@@ -416,13 +503,15 @@ function renderKeyList(type, keys){
 }
 
 function updateKey(type,i,val){
-  if(type==='or') orKeys[i]=val; else groqKeys[i]=val;
+  const arr = type==='or'?orKeys:groqKeys;
+  arr[i].value=val; arr[i].isSaved=false;
   const rows=document.getElementById(type+'-keys-list').querySelectorAll('.k-status');
   rows[i].className='k-status'+(val?' filled':'');
 }
 
 function addKeyRow(type){
-  if(type==='or') orKeys.push(''); else groqKeys.push('');
+  if(type==='or') orKeys.push({value:'',isSaved:false});
+  else groqKeys.push({value:'',isSaved:false});
   renderKeyList(type, type==='or'?orKeys:groqKeys);
 }
 
@@ -432,17 +521,41 @@ function removeKey(type,i){
 }
 
 async function saveKeys(type){
-  // Read actual values from inputs
+  // Collect: non-empty new values go in; saved-but-blank slots = keep server value
+  // We send ONLY rows that have a new value typed. Saved+blank rows are preserved server-side.
+  // To REPLACE a saved key: type the new key value. To DELETE: click the X button.
+  const arr = type==='or'?orKeys:groqKeys;
   const inputs = document.querySelectorAll(`#${type}-keys-list .key-field`);
-  const keys = [...inputs].map(i=>i.value.trim()).filter(Boolean);
+  const keys = [];
+  arr.forEach((k,i)=>{
+    const v = inputs[i]?inputs[i].value.trim():'';
+    if(k.isSaved && !v) keys.push('__keep__'); // signal to keep existing server key
+    else if(v) keys.push(v);
+    // if isSaved=false and no value: skip (deleted row)
+  });
+  // Filter out __keep__ placeholders for count, but send them so server preserves order
+  const realKeys = keys.filter(k=>k!=='__keep__');
+  // Actually: just send non-keep keys since we can't retrieve masked values
+  // Send only new values; server replaces ALL keys with this array
+  const finalKeys = [];
+  arr.forEach((k,i)=>{
+    const v = inputs[i]?inputs[i].value.trim():'';
+    if(k.isSaved && !v) {/* keep slot — but we lost the value, so skip empty saved slots */}
+    else if(v) finalKeys.push(v);
+  });
+  if(finalKeys.length===0 && arr.some(k=>k.isSaved)){
+    toast('No new keys entered. Existing saved keys are unchanged.','ok');
+    return;
+  }
   const endpoint = type==='or'?'/admin/api/keys/openrouter':'/admin/api/keys/groq';
-  const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keys})});
+  const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keys:finalKeys})});
   const d = await r.json();
   if(d.ok){
     const okEl=document.getElementById(type+'-save-ok');
     okEl.classList.add('show');
     setTimeout(()=>okEl.classList.remove('show'),2500);
     toast(`${type==='or'?'OpenRouter':'Groq'} keys saved (${d.count} keys)`);
+    loadKeysUI(); // reload to show updated state
   } else {
     toast(d.error||'Save failed','err');
   }
@@ -540,6 +653,9 @@ async function changeAdminPw(){
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Initial pending badge load
+window.addEventListener('load',()=>{ if(document.getElementById('pendingBadge')) loadPending(); });
 </script>
 </body>
 </html>

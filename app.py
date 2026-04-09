@@ -56,6 +56,11 @@ def init_db():
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS pending_users (
+                    username TEXT PRIMARY KEY,
+                    password_hash TEXT NOT NULL,
+                    requested_at BIGINT NOT NULL
+                );
             """)
         conn.commit()
 
@@ -64,8 +69,9 @@ BASE    = os.path.dirname(os.path.abspath(__file__))
 DATA    = os.path.join(BASE, "data")
 USERS_F = os.path.join(DATA, "users.json")
 CHATS_D = os.path.join(DATA, "chats")
-CFG_F   = os.path.join(DATA, "config.json")
-ADMIN_F = os.path.join(DATA, "admin.json")
+CFG_F    = os.path.join(DATA, "config.json")
+ADMIN_F  = os.path.join(DATA, "admin.json")
+PENDING_F= os.path.join(DATA, "pending.json")
 if not USE_DB:
     os.makedirs(CHATS_D, exist_ok=True)
     os.makedirs(DATA, exist_ok=True)
@@ -345,6 +351,68 @@ def verify_pw(stored, given):
         return hashlib.sha256((salt + given).encode()).hexdigest() == h
     except: return False
 
+# ── Display name: capitalize first letter (store lowercase, display capitalized) ──
+def display_name(username):
+    return username[0].upper() + username[1:] if username else username
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PENDING USERS  (awaiting admin approval)
+# ══════════════════════════════════════════════════════════════════════════════
+def load_pending():
+    if USE_DB:
+        try:
+            with get_conn() as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute("SELECT username, password_hash, requested_at FROM pending_users ORDER BY requested_at DESC")
+                    rows = cur.fetchall()
+            return {r["username"]: {"password": r["password_hash"], "requested_at": r["requested_at"]} for r in rows}
+        except: return {}
+    else:
+        try:
+            with open(PENDING_F) as f: return json.load(f)
+        except: return {}
+
+def save_pending(pending):
+    if not USE_DB:
+        with open(PENDING_F, "w") as f: json.dump(pending, f, indent=2)
+
+def add_pending(username, pw_hash):
+    now = int(time.time())
+    if USE_DB:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO pending_users (username, password_hash, requested_at)
+                    VALUES (%s, %s, %s) ON CONFLICT (username) DO UPDATE
+                    SET password_hash=EXCLUDED.password_hash, requested_at=EXCLUDED.requested_at
+                """, (username, pw_hash, now))
+            conn.commit()
+    else:
+        pending = load_pending()
+        pending[username] = {"password": pw_hash, "requested_at": now}
+        save_pending(pending)
+
+def remove_pending(username):
+    if USE_DB:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM pending_users WHERE username=%s", (username,))
+            conn.commit()
+    else:
+        pending = load_pending()
+        pending.pop(username, None)
+        save_pending(pending)
+
+def get_pending_pw(username):
+    if USE_DB:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT password_hash FROM pending_users WHERE username=%s", (username,))
+                row = cur.fetchone()
+        return row[0] if row else None
+    else:
+        return load_pending().get(username, {}).get("password")
+
 def logged_in(): return "username" in session
 def admin_logged_in(): return session.get("admin") is True
 
@@ -493,17 +561,9 @@ def register():
     if not u.replace("_","").replace("-","").isalnum(): return jsonify({"error": "Username: letters/numbers/- _ only."}), 400
     if len(p) < 6: return jsonify({"error": "Password min 6 chars."}), 400
     if user_exists(u): return jsonify({"error": "Username already taken."}), 409
-    pw_hash = hash_pw(p)
-    created = int(time.time())
-    if USE_DB:
-        try: db_create_user(u, pw_hash, created)
-        except Exception as e: return jsonify({"error": str(e)}), 500
-    else:
-        users = load_users()
-        users[u] = {"password": pw_hash, "created_at": created}
-        save_users(users)
-    session["username"] = u
-    return jsonify({"ok": True, "username": u})
+    if get_pending_pw(u): return jsonify({"error": "Account request already pending approval."}), 409
+    add_pending(u, hash_pw(p))
+    return jsonify({"pending": True, "message": "Your account request has been sent to the admin for approval. Please wait — you can sign in once approved."})
 
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -514,7 +574,7 @@ def login():
     if not pw_hash or not verify_pw(pw_hash, p):
         return jsonify({"error": "Invalid username or password."}), 401
     session["username"] = u
-    return jsonify({"ok": True, "username": u})
+    return jsonify({"ok": True, "username": u, "display_name": display_name(u)})
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
@@ -764,6 +824,41 @@ def admin_change_pw():
     new_pw = (request.get_json().get("password") or "").strip()
     if len(new_pw) < 6: return jsonify({"error": "Password min 6 chars."}), 400
     set_admin_pw(new_pw)
+    return jsonify({"ok": True})
+
+@app.route("/admin/api/pending/list")
+@admin_required
+def admin_pending_list():
+    pending = load_pending()
+    result = [{"username": u, "requested_at": d.get("requested_at", 0)}
+              for u, d in pending.items()]
+    result.sort(key=lambda x: x["requested_at"], reverse=True)
+    return jsonify({"pending": result})
+
+@app.route("/admin/api/pending/approve", methods=["POST"])
+@admin_required
+def admin_approve_user():
+    username = (request.get_json().get("username") or "").strip().lower()
+    if not username: return jsonify({"error": "Username required."}), 400
+    pw_hash = get_pending_pw(username)
+    if not pw_hash: return jsonify({"error": "No pending request found."}), 404
+    created = int(time.time())
+    if USE_DB:
+        try: db_create_user(username, pw_hash, created)
+        except Exception as e: return jsonify({"error": str(e)}), 500
+    else:
+        users = load_users()
+        users[username] = {"password": pw_hash, "created_at": created}
+        save_users(users)
+    remove_pending(username)
+    return jsonify({"ok": True})
+
+@app.route("/admin/api/pending/reject", methods=["POST"])
+@admin_required
+def admin_reject_user():
+    username = (request.get_json().get("username") or "").strip().lower()
+    if not username: return jsonify({"error": "Username required."}), 400
+    remove_pending(username)
     return jsonify({"ok": True})
 
 # ══════════════════════════════════════════════════════════════════════════════

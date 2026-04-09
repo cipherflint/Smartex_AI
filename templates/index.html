@@ -44,7 +44,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4;}
-.layout{display:flex;height:100vh;position:relative;z-index:1;}
+.layout{display:flex;height:100dvh;height:100vh;position:relative;z-index:1;}
 
 /* ── History Sidebar ── */
 .hs{width:var(--hw);min-width:var(--hw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .28s cubic-bezier(.4,0,.2,1),min-width .28s cubic-bezier(.4,0,.2,1);position:relative;}
@@ -225,14 +225,17 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .toast.ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.32);color:var(--success);}
 .mob-tog{display:none;position:fixed;top:12px;left:12px;z-index:50;width:32px;height:32px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;align-items:center;justify-content:center;color:var(--text2);}
 @media(max-width:900px){
-  .hs{position:fixed;left:-270px;top:0;bottom:0;z-index:40;transition:left .3s ease;width:var(--hw)!important;min-width:var(--hw)!important;}
+  .layout{height:100dvh;height:100vh;}
+  .hs{position:fixed;left:-280px;top:0;bottom:0;z-index:40;transition:left .3s ease;width:var(--hw)!important;min-width:var(--hw)!important;}
   .hs.mob-open{left:0!important;}
-  .hs.collapsed{left:-270px!important;}
+  .hs.collapsed{left:-280px!important;}
   .mob-tog{display:flex;}
-  .chat-container{padding:13px;}
-  .input-area{padding:8px 12px 12px;}
+  .chat-container{padding:12px 13px;}
+  .input-area{padding:8px 12px calc(12px + env(safe-area-inset-bottom, 0px));}
   .topbar{padding:10px 12px 10px 50px;}
-  .model-sel{max-width:120px;font-size:10px;}
+  .model-sel{max-width:130px;font-size:10px;}
+  .message{max-width:92%;}
+  .bubble{font-size:13px;}
 }
 </style>
 </head>
@@ -357,10 +360,6 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
       <button class="hib" id="settingsBtn" onclick="toggleSettings()" title="Settings">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
-      <div class="hib-spacer"></div>
-      <button class="hib" onclick="toggleHS()" title="Collapse sidebar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
-      </button>
     </div>
   </aside>
 
@@ -371,23 +370,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
       <div class="status-dot" id="topDot"></div>
       <span class="status-text" id="topStatus">Ready</span>
       <span class="tb-chat-title" id="topTitle"></span>
-      <select class="model-sel" id="modelSelect">
-        <optgroup label="── Free / Fast ──">
-          {% for m in models %}{% if m.tag in ['free','fast'] %}
-          <option value="{{ m.id }}">{{ m.name }}</option>
-          {% endif %}{% endfor %}
-        </optgroup>
-        <optgroup label="── Featured ──">
-          {% for m in models %}{% if m.tag == 'new' %}
-          <option value="{{ m.id }}">{{ m.name }}</option>
-          {% endif %}{% endfor %}
-        </optgroup>
-        <optgroup label="── All Models ──">
-          {% for m in models %}{% if m.tag == '' %}
-          <option value="{{ m.id }}">{{ m.name }}</option>
-          {% endif %}{% endfor %}
-        </optgroup>
-      </select>
+      <select class="model-sel" id="modelSelect"><option value="">Loading…</option></select>
       <button class="tb-btn" onclick="createNewChat()" title="New chat" style="border-color:rgba(124,106,255,.3);color:var(--accent2);flex-shrink:0;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
@@ -429,6 +412,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 <script>
 const CURRENT_USER = "{{ username }}";
+const DISPLAY_NAME = CURRENT_USER ? CURRENT_USER.charAt(0).toUpperCase() + CURRENT_USER.slice(1) : "";
 const LSM = 'sx_model', LST = 'sx_theme';
 let isLoading = false, chats = {}, activeChatId = null, attached = [], currentStream = null;
 
@@ -522,7 +506,7 @@ function renderList(){
 function renderMsgs(){
   const c=document.getElementById('chatContainer'),chat=chats[activeChatId];
   if(!chat||!chat.messages.length){
-    c.innerHTML=`<div class="welcome" id="ws"><div class="wi">✦</div><h2>Hello, ${esc(CURRENT_USER)}!</h2><p>Select a model above and start chatting.</p><div class="sug-chips"><div class="chip" onclick="sendSug('Explain quantum computing')">⚛️ Quantum computing</div><div class="chip" onclick="sendSug('Write a Python web scraper')">🐍 Python code</div><div class="chip" onclick="sendSug('Best practices for REST API design?')">🔗 API design</div><div class="chip" onclick="sendSug('Tell me a creative short story')">📖 Creative writing</div></div></div>`;
+    c.innerHTML=`<div class="welcome" id="ws"><div class="wi">✦</div><h2>Hello, ${esc(DISPLAY_NAME)}!</h2><p>Select a model above and start chatting.</p><div class="sug-chips"><div class="chip" onclick="sendSug('Explain quantum computing')">⚛️ Quantum computing</div><div class="chip" onclick="sendSug('Write a Python web scraper')">🐍 Python code</div><div class="chip" onclick="sendSug('Best practices for REST API design?')">🔗 API design</div><div class="chip" onclick="sendSug('Tell me a creative short story')">📖 Creative writing</div></div></div>`;
     document.getElementById('statMsgs').textContent='0';return;
   }
   c.innerHTML='';
@@ -671,17 +655,40 @@ function setupTA(){
   e.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();sendMessage();}});
 }
 
-// ── Model select persistence ──────────────────────────────────────────────────
-function initModel(){
-  const m=localStorage.getItem(LSM);const s=document.getElementById('modelSelect');
-  if(m&&[...s.options].some(o=>o.value===m))s.value=m;
-  s.addEventListener('change',()=>localStorage.setItem(LSM,s.value));
+// ── Model loading (dynamic — picks up admin-added models) ────────────────────
+async function loadModels(){
+  try{
+    const r=await fetch('/models');
+    const d=await r.json();
+    const models=d.models||[];
+    const s=document.getElementById('modelSelect');
+    const saved=localStorage.getItem(LSM);
+    s.innerHTML='';
+    const groups={free_fast:[],new_:[],all:[]};
+    models.forEach(m=>{
+      if(m.tag==='free'||m.tag==='fast') groups.free_fast.push(m);
+      else if(m.tag==='new') groups.new_.push(m);
+      else groups.all.push(m);
+    });
+    const addGroup=(label,list)=>{
+      if(!list.length)return;
+      const g=document.createElement('optgroup');g.label=label;
+      list.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.name;g.appendChild(o);});
+      s.appendChild(g);
+    };
+    addGroup('── Free / Fast ──',groups.free_fast);
+    addGroup('── Featured ──',groups.new_);
+    addGroup('── All Models ──',groups.all);
+    if(saved&&[...s.options].some(o=>o.value===saved))s.value=saved;
+    else if(s.options.length)s.value=s.options[0].value;
+  }catch(e){console.error('Model load failed',e);}
+  document.getElementById('modelSelect').addEventListener('change',()=>localStorage.setItem(LSM,document.getElementById('modelSelect').value));
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 function init(){
-  loadTheme();setupTA();initModel();
-  document.getElementById('settingsUsername').textContent=CURRENT_USER;
+  loadTheme();setupTA();loadModels();
+  document.getElementById('settingsUsername').textContent=DISPLAY_NAME;
   document.getElementById('settingsAvatar').textContent=CURRENT_USER[0].toUpperCase();
   loadChats();
 }

@@ -60,6 +60,9 @@ input::placeholder{color:var(--text3);}
 
 .error-box{background:rgba(255,79,106,.09);border:1px solid rgba(255,79,106,.3);border-radius:9px;padding:9px 12px;font-size:12.5px;color:var(--error);margin-top:12px;display:none;}
 .error-box.show{display:block;}
+.pending-box{background:rgba(52,211,153,.09);border:1px solid rgba(52,211,153,.3);border-radius:9px;padding:12px;font-size:12.5px;color:var(--success);margin-top:12px;line-height:1.6;}
+.pending-box .pi{font-size:22px;display:block;text-align:center;margin-bottom:6px;}
+.error-box.show{display:block;}
 
 .footer-note{text-align:center;font-size:11px;color:var(--text3);margin-top:20px;}
 </style>
@@ -74,7 +77,7 @@ input::placeholder{color:var(--text3);}
 
     <div class="tabs">
       <button class="tab active" id="tabLogin" onclick="showTab('login')">Sign In</button>
-      <button class="tab" id="tabRegister" onclick="showTab('register')">Create Account</button>
+      <button class="tab" id="tabRegister" onclick="showTab('register')">Request Account</button>
     </div>
 
     <!-- Login form -->
@@ -106,11 +109,12 @@ input::placeholder{color:var(--text3);}
         <label>Confirm Password</label>
         <input type="password" id="regPass2" placeholder="repeat password" autocomplete="new-password"/>
       </div>
-      <button class="submit-btn" id="btnRegister" onclick="doRegister()">Create Account</button>
+      <button class="submit-btn" id="btnRegister" onclick="doRegister()">Request Account</button>
       <div class="error-box" id="regErr"></div>
+      <div class="pending-box" id="pendingBox" style="display:none;"></div>
     </div>
 
-    <div class="footer-note">Your chats are stored locally on this machine only.</div>
+    <div class="footer-note">Account creation requires admin approval.</div>
   </div>
 </div>
 <script>
@@ -147,14 +151,23 @@ async function doRegister(){
   if(!u||!p){showErr('regErr','Please fill all fields.');return;}
   if(p!==p2){showErr('regErr','Passwords do not match.');return;}
   const btn=document.getElementById('btnRegister');
-  btn.disabled=true;btn.textContent='Creating account…';
+  btn.disabled=true;btn.textContent='Sending request…';
   try{
     const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
     const d=await r.json();
     if(d.ok){window.location.href='/';}
-    else{showErr('regErr',d.error||'Registration failed.');}
-  }catch(e){showErr('regErr','Network error.');}
-  btn.disabled=false;btn.textContent='Create Account';
+    else if(d.pending){
+      // Show pending approval message
+      const pb=document.getElementById('pendingBox');
+      pb.innerHTML='<span class="pi">⏳</span><strong>Request sent!</strong><br>'+d.message;
+      pb.style.display='block';
+      btn.textContent='Request Sent';
+      document.getElementById('regUser').value='';
+      document.getElementById('regPass').value='';
+      document.getElementById('regPass2').value='';
+    }
+    else{showErr('regErr',d.error||'Registration failed.');btn.disabled=false;btn.textContent='Request Account';}
+  }catch(e){showErr('regErr','Network error.');btn.disabled=false;btn.textContent='Request Account';}
 }
 
 // Enter key support
