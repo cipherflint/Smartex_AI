@@ -755,6 +755,40 @@ def admin_set_groq_keys():
     cfg = load_config(); cfg["groq_keys"] = keys; save_config(cfg)
     return jsonify({"ok": True, "count": len(keys)})
 
+@app.route("/admin/api/keys/append", methods=["POST"])
+@admin_required
+def admin_append_keys():
+    """Add new keys to existing list without replacing saved ones."""
+    d = request.get_json()
+    provider = d.get("provider", "openrouter")
+    new_keys = [k.strip() for k in d.get("keys", []) if k.strip()]
+    cfg = load_config()
+    field = "groq_keys" if provider == "groq" else "openrouter_keys"
+    existing = cfg.get(field, [])
+    # Avoid exact duplicates
+    for k in new_keys:
+        if k not in existing:
+            existing.append(k)
+    cfg[field] = existing
+    save_config(cfg)
+    return jsonify({"ok": True, "count": len(existing)})
+
+@app.route("/admin/api/keys/delete", methods=["POST"])
+@admin_required
+def admin_delete_key():
+    """Delete a key by its index position."""
+    d = request.get_json()
+    provider = d.get("provider", "openrouter")
+    index = d.get("index", -1)
+    cfg = load_config()
+    field = "groq_keys" if provider == "groq" else "openrouter_keys"
+    keys = cfg.get(field, [])
+    if 0 <= index < len(keys):
+        keys.pop(index)
+        cfg[field] = keys
+        save_config(cfg)
+    return jsonify({"ok": True, "count": len(keys)})
+
 @app.route("/admin/api/models/add", methods=["POST"])
 @admin_required
 def admin_add_model():

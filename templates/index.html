@@ -42,9 +42,9 @@
   }
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4;}
-.layout{display:flex;height:100dvh;height:100vh;position:relative;z-index:1;}
+.layout{display:flex;height:100dvh;height:100vh;position:relative;z-index:1;overflow:hidden;}
 
 /* ── History Sidebar ── */
 .hs{width:var(--hw);min-width:var(--hw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .28s cubic-bezier(.4,0,.2,1),min-width .28s cubic-bezier(.4,0,.2,1);position:relative;}
@@ -69,6 +69,8 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .no-chats{padding:24px 12px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6;}
 .hs-bottom{flex-shrink:0;border-top:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:6px;}
 .hib{width:30px;height:30px;border-radius:7px;background:transparent;border:1px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:all .18s;flex-shrink:0;}
+.hs-close-btn{display:none;width:28px;height:28px;border-radius:7px;background:transparent;border:1px solid var(--border);cursor:pointer;align-items:center;justify-content:center;color:var(--text3);transition:all .18s;flex-shrink:0;margin-left:auto;}
+.hs-close-btn:hover{background:rgba(255,79,106,.08);border-color:rgba(255,79,106,.3);color:var(--error);}
 .hib:hover{background:var(--surface2);border-color:var(--border);color:var(--text2);}
 .hib.active{background:rgba(124,106,255,.12);border-color:rgba(124,106,255,.35);color:var(--accent2);}
 .hib-spacer{flex:1;}
@@ -174,7 +176,9 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .bubble ul,.bubble ol{padding-left:17px;margin-bottom:7px;}
 .bubble li{margin-bottom:3px;}
 .bubble code{font-family:'DM Mono',monospace;font-size:11.5px;background:var(--surface3);padding:2px 5px;border-radius:4px;color:var(--accent3);}
-.bubble pre{background:#0d0d16;border:1px solid var(--border);border-radius:9px;margin:9px 0;overflow:hidden;}
+.bubble pre{background:#0d0d16;border:1px solid var(--border);border-radius:9px;margin:9px 0;overflow:hidden;position:relative;}
+.code-copy-btn{position:sticky;top:6px;float:right;margin:-2px 6px 0 0;padding:3px 9px;background:rgba(124,106,255,.18);border:1px solid rgba(124,106,255,.35);border-radius:6px;color:var(--accent3);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;z-index:2;user-select:none;line-height:1.6;}
+.code-copy-btn:hover{background:rgba(124,106,255,.32);color:#fff;}
 .bubble pre code{background:transparent;padding:12px 14px;display:block;color:inherit;font-size:11.5px;overflow-x:auto;}
 .bubble blockquote{border-left:3px solid var(--accent);padding-left:11px;color:var(--text2);font-style:italic;margin:7px 0;}
 .bubble table{border-collapse:collapse;width:100%;margin:7px 0;}
@@ -225,16 +229,23 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .toast.ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.32);color:var(--success);}
 
 @media(max-width:900px){
-  .layout{height:100dvh;height:100vh;}
+  html,body{height:100%;overflow:hidden;}
+  .layout{height:100dvh;min-height:-webkit-fill-available;overflow:hidden;}
   .hs{position:fixed;left:-280px;top:0;bottom:0;z-index:40;transition:left .3s ease;width:var(--hw)!important;min-width:var(--hw)!important;}
   .hs.mob-open{left:0!important;}
   .hs.collapsed{left:-280px!important;}
-  .chat-container{padding:12px 13px;}
-  .input-area{padding:8px 12px calc(12px + env(safe-area-inset-bottom, 0px));}
-  .topbar{padding:10px 12px;}
+  .hs-close-btn{display:flex!important;}
+  .main{height:100%;display:flex;flex-direction:column;overflow:hidden;}
+  .chat-wrap{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+  .chat-container{flex:1;min-height:0;padding:12px 13px;overflow-y:auto;}
+  .input-area{flex-shrink:0;padding:8px 12px max(12px, env(safe-area-inset-bottom, 12px));}
+  .topbar{padding:10px 12px;flex-shrink:0;}
   .model-sel{max-width:130px;font-size:10px;}
   .message{max-width:92%;}
   .bubble{font-size:13px;}
+}
+@supports (-webkit-touch-callout: none){
+  .layout{height:-webkit-fill-available;}
 }
 </style>
 </head>
@@ -349,6 +360,9 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     <div class="hs-top">
       <div class="logo-mark">✦</div>
       <span class="logo-name">Smartex</span>
+      <button class="hs-close-btn" onclick="toggleHS()" title="Close sidebar">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <button class="new-chat-btn" onclick="createNewChat()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -521,7 +535,20 @@ function appendMsg(role,content,meta,atts=[]){
   if(role==='ai'){
     const body=document.createElement('div');
     body.innerHTML=marked.parse(content);
-    body.querySelectorAll('pre code').forEach(b=>hljs.highlightElement(b));
+    body.querySelectorAll('pre code').forEach(b=>{
+      hljs.highlightElement(b);
+      const pre=b.parentElement;
+      const copyBtn=document.createElement('button');
+      copyBtn.className='code-copy-btn';
+      copyBtn.textContent='Copy';
+      copyBtn.onclick=()=>{
+        navigator.clipboard.writeText(b.innerText).then(()=>{
+          copyBtn.textContent='Copied!';
+          setTimeout(()=>copyBtn.textContent='Copy',2000);
+        });
+      };
+      pre.insertBefore(copyBtn,pre.firstChild);
+    });
     bub.appendChild(body);
     const m=document.createElement('div');m.className='msg-meta';
     m.innerHTML=`<span>${meta}</span><span class="copy-btn" onclick="cpText(this)" data-text="${encodeURIComponent(content)}">Copy</span>`;
@@ -604,7 +631,24 @@ async function sendMessage(){
             rawText+=d.token;
             // Render markdown progressively
             sBody.innerHTML=marked.parse(rawText);
-            sBody.querySelectorAll('pre code').forEach(b=>{if(!b.dataset.highlighted)hljs.highlightElement(b);});
+            sBody.querySelectorAll('pre code').forEach(b=>{
+              if(!b.dataset.highlighted){
+                hljs.highlightElement(b);
+                const pre=b.parentElement;
+                if(!pre.querySelector('.code-copy-btn')){
+                  const copyBtn=document.createElement('button');
+                  copyBtn.className='code-copy-btn';
+                  copyBtn.textContent='Copy';
+                  copyBtn.onclick=()=>{
+                    navigator.clipboard.writeText(b.innerText).then(()=>{
+                      copyBtn.textContent='Copied!';
+                      setTimeout(()=>copyBtn.textContent='Copy',2000);
+                    });
+                  };
+                  pre.insertBefore(copyBtn,pre.firstChild);
+                }
+              }
+            });
             scrollBot();
           }
           if(d.done){fullReply=d.full||rawText;break;}

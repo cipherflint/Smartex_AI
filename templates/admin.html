@@ -35,6 +35,23 @@ input::placeholder,textarea::placeholder{color:var(--t3);}
 
 /* ── Layout ── */
 .layout{display:flex;min-height:100vh;}
+.sidebar{transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.sidebar.hidden{transform:translateX(-100%);}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:35;backdrop-filter:blur(2px);}
+.sb-overlay.show{display:block;}
+.admin-tog{display:none;position:fixed;top:12px;left:12px;z-index:50;width:34px;height:34px;border-radius:9px;background:var(--surf);border:1px solid var(--border);cursor:pointer;align-items:center;justify-content:center;color:var(--t2);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.admin-tog:hover{border-color:var(--accent);color:var(--accent2);}
+.sb-close-btn{display:none;width:26px;height:26px;border-radius:7px;background:transparent;border:1px solid var(--border);cursor:pointer;align-items:center;justify-content:center;color:var(--t3);transition:all .2s;margin-left:auto;}
+.sb-close-btn:hover{background:rgba(255,79,106,.1);border-color:rgba(255,79,106,.3);color:var(--err);}
+@media(max-width:860px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;transform:translateX(0);}
+  .sidebar.hidden{transform:translateX(-100%);}
+  .content{padding:20px 16px 20px 16px;}
+  .admin-tog{display:flex;}
+  .sb-close-btn{display:flex;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .model-form{grid-template-columns:1fr 1fr;gap:8px;}
+}
 .sidebar{width:220px;min-width:220px;background:var(--surf);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0;}
 .sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
 .sb-ln{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--a3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
@@ -136,13 +153,20 @@ tr:hover td{background:rgba(124,106,255,.03);}
 
 {% else %}
 <!-- ════════════════ DASHBOARD ════════════════ -->
+<div class="sb-overlay" id="sbOverlay" onclick="toggleAdminSidebar()"></div>
+<button class="admin-tog" id="adminTog" onclick="toggleAdminSidebar()">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
 <div class="layout">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="adminSidebar">
     <div class="sb-logo">
       <div class="lm" style="width:28px;height:28px;font-size:13px;">⚡</div>
       <span class="sb-ln">Smartex</span>
       <span class="sb-badge">ADMIN</span>
+      <button class="sb-close-btn" onclick="toggleAdminSidebar()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <nav>
       <button class="nav-item active" id="nav-overview" onclick="showPanel('overview')">
@@ -237,9 +261,9 @@ tr:hover td{background:rgba(124,106,255,.03);}
         </div>
         <div class="sec-body">
           <div id="or-keys-list"></div>
-          <button class="add-key-btn" onclick="addKeyRow('or')">+ Add OpenRouter Key</button>
+          
           <div class="save-row">
-            <button class="btn btn-primary btn-sm" onclick="saveKeys('or')">Save OpenRouter Keys</button>
+            <span style="font-size:11px;color:var(--t2);">Keys are saved instantly when you click <strong>Add</strong>. Use the 🗑 button to delete.</span>
             <span class="save-ok" id="or-save-ok">✓ Saved!</span>
           </div>
         </div>
@@ -253,9 +277,9 @@ tr:hover td{background:rgba(124,106,255,.03);}
         </div>
         <div class="sec-body">
           <div id="groq-keys-list"></div>
-          <button class="add-key-btn" onclick="addKeyRow('groq')">+ Add Groq Key</button>
+          
           <div class="save-row">
-            <button class="btn btn-primary btn-sm" onclick="saveKeys('groq')">Save Groq Keys</button>
+            <span style="font-size:11px;color:var(--t2);">Keys are saved instantly when you click <strong>Add</strong>. Use the 🗑 button to delete.</span>
             <span class="save-ok" id="groq-save-ok">✓ Saved!</span>
           </div>
         </div>
@@ -391,6 +415,14 @@ tr:hover td{background:rgba(124,106,255,.03);}
 
 <script>
 // ── Panel navigation ──────────────────────────────────────────────────────────
+function toggleAdminSidebar(){
+  const sb=document.getElementById('adminSidebar');
+  const ov=document.getElementById('sbOverlay');
+  const tog=document.getElementById('adminTog');
+  const hidden=sb.classList.toggle('hidden');
+  ov.classList.toggle('show',!hidden);
+}
+
 function showPanel(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -466,99 +498,86 @@ function toast(msg, type='ok'){
 // ── API Keys UI ───────────────────────────────────────────────────────────────
 let orKeys = [], groqKeys = [];
 
-// orKeys/groqKeys: array of objects {value:'', isSaved:false}
+// ── API Key management — append/delete model ─────────────────────────────────
+// savedCounts tracks how many keys are already saved on server
+let savedOrCount = 0, savedGroqCount = 0;
+
 async function loadKeysUI(){
   const r = await fetch('/admin/api/config/get');
   const d = await r.json();
-  // Build arrays: saved slots show as filled (masked), new slots are empty
-  orKeys = Array(d.or_key_count).fill(null).map(()=>({value:'', isSaved:true}));
-  groqKeys = Array(d.groq_key_count).fill(null).map(()=>({value:'', isSaved:true}));
-  if(!orKeys.length) orKeys = [{value:'', isSaved:false}];
-  if(!groqKeys.length) groqKeys = [{value:'', isSaved:false}];
-  renderKeyList('or', orKeys);
-  renderKeyList('groq', groqKeys);
+  savedOrCount = d.or_key_count || 0;
+  savedGroqCount = d.groq_key_count || 0;
+  renderKeySection('or', savedOrCount, d.openrouter_keys || []);
+  renderKeySection('groq', savedGroqCount, d.groq_keys || []);
 }
 
-function renderKeyList(type, keys){
+function renderKeySection(type, count, maskedKeys){
   const list = document.getElementById(type+'-keys-list');
   list.innerHTML = '';
-  keys.forEach((k,i)=>{
-    const isSaved = k.isSaved && !k.value;
+  // Show saved keys as read-only masked rows
+  maskedKeys.forEach((masked, i)=>{
     const row = document.createElement('div');
-    row.className='key-row';
-    row.innerHTML=`
-      <div class="key-input-wrap">
-        <span class="k-num">${i+1}</span>
-        <input class="key-field" type="password"
-          placeholder="${isSaved ? '●●●●●●●● (saved — enter new value to replace)' : (type==='or'?'sk-or-...':'gsk_...')}"
-          value="${k.value}"
-          oninput="updateKey('${type}',${i},this.value)" autocomplete="off"/>
-        <div class="k-status ${isSaved||k.value?'filled':''}"></div>
+    row.className = 'key-row';
+    row.innerHTML = `
+      <div class="key-input-wrap" style="background:rgba(52,211,153,.04);border-color:rgba(52,211,153,.2);">
+        <span class="k-num" style="color:var(--ok,#34d399);">${i+1}</span>
+        <span style="flex:1;font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);letter-spacing:1px;">${masked}</span>
+        <div class="k-status filled"></div>
       </div>
-      <button class="key-del btn" onclick="removeKey('${type}',${i})" title="Remove this key slot">
+      <button class="key-del btn" onclick="deleteKey('${type}',${i})" title="Delete this key">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>`;
     list.appendChild(row);
   });
-}
-
-function updateKey(type,i,val){
-  const arr = type==='or'?orKeys:groqKeys;
-  arr[i].value=val; arr[i].isSaved=false;
-  const rows=document.getElementById(type+'-keys-list').querySelectorAll('.k-status');
-  rows[i].className='k-status'+(val?' filled':'');
-}
-
-function addKeyRow(type){
-  if(type==='or') orKeys.push({value:'',isSaved:false});
-  else groqKeys.push({value:'',isSaved:false});
-  renderKeyList(type, type==='or'?orKeys:groqKeys);
-}
-
-function removeKey(type,i){
-  if(type==='or') orKeys.splice(i,1); else groqKeys.splice(i,1);
-  renderKeyList(type, type==='or'?orKeys:groqKeys);
-}
-
-async function saveKeys(type){
-  // Collect: non-empty new values go in; saved-but-blank slots = keep server value
-  // We send ONLY rows that have a new value typed. Saved+blank rows are preserved server-side.
-  // To REPLACE a saved key: type the new key value. To DELETE: click the X button.
-  const arr = type==='or'?orKeys:groqKeys;
-  const inputs = document.querySelectorAll(`#${type}-keys-list .key-field`);
-  const keys = [];
-  arr.forEach((k,i)=>{
-    const v = inputs[i]?inputs[i].value.trim():'';
-    if(k.isSaved && !v) keys.push('__keep__'); // signal to keep existing server key
-    else if(v) keys.push(v);
-    // if isSaved=false and no value: skip (deleted row)
+  // Always show one empty input row for adding a new key
+  const newRow = document.createElement('div');
+  newRow.className = 'key-row';
+  newRow.id = type+'-new-row';
+  newRow.innerHTML = `
+    <div class="key-input-wrap">
+      <span class="k-num" style="color:var(--t3);">+</span>
+      <input class="key-field" id="${type}-new-input" type="password"
+        placeholder="${type==='or'?'sk-or-v1-... (new key)':'gsk_... (new key)'}"
+        autocomplete="off" onkeydown="if(event.key==='Enter')addNewKey('${type}')"/>
+      <div class="k-status" id="${type}-new-status"></div>
+    </div>
+    <button class="btn btn-sm" style="background:rgba(52,211,153,.1);color:var(--ok,#34d399);border:1px solid rgba(52,211,153,.3);flex-shrink:0;" onclick="addNewKey('${type}')">Add</button>`;
+  list.appendChild(newRow);
+  document.getElementById(type+'-new-input').addEventListener('input', function(){
+    document.getElementById(type+'-new-status').className='k-status'+(this.value.trim()?'filled':'');
   });
-  // Filter out __keep__ placeholders for count, but send them so server preserves order
-  const realKeys = keys.filter(k=>k!=='__keep__');
-  // Actually: just send non-keep keys since we can't retrieve masked values
-  // Send only new values; server replaces ALL keys with this array
-  const finalKeys = [];
-  arr.forEach((k,i)=>{
-    const v = inputs[i]?inputs[i].value.trim():'';
-    if(k.isSaved && !v) {/* keep slot — but we lost the value, so skip empty saved slots */}
-    else if(v) finalKeys.push(v);
+}
+
+async function addNewKey(type){
+  const input = document.getElementById(type+'-new-input');
+  const val = input.value.trim();
+  if(!val){toast('Please enter a key value','err');return;}
+  const r = await fetch('/admin/api/keys/append',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({provider: type==='or'?'openrouter':'groq', keys:[val]})
   });
-  if(finalKeys.length===0 && arr.some(k=>k.isSaved)){
-    toast('No new keys entered. Existing saved keys are unchanged.','ok');
-    return;
-  }
-  const endpoint = type==='or'?'/admin/api/keys/openrouter':'/admin/api/keys/groq';
-  const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keys:finalKeys})});
   const d = await r.json();
   if(d.ok){
-    const okEl=document.getElementById(type+'-save-ok');
-    okEl.classList.add('show');
-    setTimeout(()=>okEl.classList.remove('show'),2500);
-    toast(`${type==='or'?'OpenRouter':'Groq'} keys saved (${d.count} keys)`);
-    loadKeysUI(); // reload to show updated state
-  } else {
-    toast(d.error||'Save failed','err');
-  }
+    toast(`Key added! Total: ${d.count}`);
+    loadKeysUI();
+  } else toast(d.error||'Failed','err');
+}
+
+async function deleteKey(type, index){
+  if(!confirm(`Delete key #${index+1}? This cannot be undone.`)) return;
+  const r = await fetch('/admin/api/keys/delete',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({provider: type==='or'?'openrouter':'groq', index})
+  });
+  const d = await r.json();
+  if(d.ok){toast('Key deleted.');loadKeysUI();}
+  else toast(d.error||'Failed','err');
+}
+
+// Keep saveKeys as no-op (keys saved via addNewKey immediately)
+function addKeyRow(type){ /* handled by addNewKey */ }
+function saveKeys(type){
+  toast('Keys are saved automatically when you click Add.','ok');
 }
 
 // ── Models ────────────────────────────────────────────────────────────────────
