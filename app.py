@@ -540,6 +540,17 @@ def stream_ai(model, messages):
 # ─────────────────────────── MAIN APP ROUTES ──────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════════════
 
+@app.route("/manifest.json")
+def manifest():
+    return app.send_static_file("manifest.json")
+
+@app.route("/sw.js")
+def service_worker():
+    resp = app.send_static_file("sw.js")
+    resp.headers["Service-Worker-Allowed"] = "/"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
 @app.route("/")
 def index():
     if not logged_in(): return redirect(url_for("auth_page"))

@@ -1,8 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,interactive-widget=resizes-content"/>
 <title>Smartex AI</title>
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f2ff" media="(prefers-color-scheme: light)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Smartex AI">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -44,7 +53,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4;}
-.layout{display:flex;height:100dvh;height:100vh;position:relative;z-index:1;overflow:hidden;}
+.layout{display:flex;height:100dvh;height:100vh;position:relative;z-index:1;overflow:hidden;transform-origin:top left;will-change:transform,height;}
 
 /* ── History Sidebar ── */
 .hs{width:var(--hw);min-width:var(--hw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .28s cubic-bezier(.4,0,.2,1),min-width .28s cubic-bezier(.4,0,.2,1);position:relative;}
@@ -725,6 +734,30 @@ async function loadModels(){
     else if(s.options.length)s.value=s.options[0].value;
   }catch(e){console.error('Model load failed',e);}
   document.getElementById('modelSelect').addEventListener('change',()=>localStorage.setItem(LSM,document.getElementById('modelSelect').value));
+}
+
+// ── Keyboard-aware layout (Android Chrome) ────────────────────────────────────
+(function setupKeyboardFix(){
+  if(!window.visualViewport)return;
+  const layout=document.querySelector('.layout');
+  function onViewportChange(){
+    const vv=window.visualViewport;
+    const kbOffset=window.innerHeight-vv.height-vv.offsetTop;
+    if(kbOffset>50){
+      layout.style.height=vv.height+'px';
+      layout.style.transform='translateY('+vv.offsetTop+'px)';
+    }else{
+      layout.style.height='';
+      layout.style.transform='';
+    }
+  }
+  window.visualViewport.addEventListener('resize',onViewportChange);
+  window.visualViewport.addEventListener('scroll',onViewportChange);
+})();
+
+// ── Service Worker (PWA) ──────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
