@@ -55,7 +55,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ─── FIXED CSS: theme-aware (light/dark mode) ──────────────────────────
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
@@ -98,8 +97,8 @@ st.markdown("""
         border: 1px solid #6366f144;
         padding: 2px 8px;
         border-radius: 3px;
-        display: inline-block;
         margin-top: 0.3rem;
+        display: inline-block;
     }
     .provider-tag-openrouter {
         font-family: 'IBM Plex Mono', monospace;
@@ -109,8 +108,8 @@ st.markdown("""
         border: 1px solid #ff8c0044;
         padding: 2px 8px;
         border-radius: 3px;
-        display: inline-block;
         margin-top: 0.3rem;
+        display: inline-block;
     }
     [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
         background-color: var(--st-color-secondary-background) !important;
@@ -239,7 +238,7 @@ def is_openrouter_model(model_name: str) -> bool:
 
 
 # ─────────────────────────────────────────────
-# API Calls
+# API Calls (run in threads)
 # ─────────────────────────────────────────────
 def chat_with_groq(messages: list, model: str, temperature: float, result: dict):
     try:
