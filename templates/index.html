@@ -4,7 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,interactive-widget=resizes-content"/>
 <title>Smartex AI</title>
-<!-- PWA -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0a0a0f" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f3f2ff" media="(prefers-color-scheme: light)">
@@ -120,7 +119,6 @@ html, body {
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
 }
-/* subtle noise texture */
 body::before {
   content: '';
   position: fixed;
@@ -137,7 +135,7 @@ body::before {
   overflow: hidden;
 }
 
-/* ── HISTORY SIDEBAR (modern) ── */
+/* ── HISTORY SIDEBAR (left) ── */
 .hs {
   width: var(--hw);
   min-width: var(--hw);
@@ -297,29 +295,27 @@ body::before {
   background: rgba(255,79,106,0.15);
   color: var(--error);
 }
-.hs-bottom {
-  padding: 12px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: center;
-}
-.hib {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+/* Settings bar at bottom – full width rectangular */
+.settings-bar {
+  margin: 12px 12px 16px;
+  padding: 10px;
   background: var(--surface2);
   border: 1px solid var(--border);
+  border-radius: 40px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   color: var(--text2);
-  transition: 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
 }
-.hib:hover {
+.settings-bar:hover {
   background: var(--surface3);
-  color: var(--accent2);
   border-color: var(--accent);
+  color: var(--accent2);
 }
 .hs-close-btn {
   display: none;
@@ -349,6 +345,210 @@ body::before {
     margin-left: auto;
     cursor: pointer;
   }
+}
+
+/* ── SETTINGS PANEL (slides from left) ── */
+.sp {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 320px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.2,0.9,0.4,1.1);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+}
+.sp.open {
+  transform: translateX(0);
+}
+.sp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(2px);
+  z-index: 190;
+  display: none;
+}
+.sp-overlay.show {
+  display: block;
+}
+.sp-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sp-header h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+.sp-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 40px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+}
+.sp-close:hover {
+  background: var(--surface3);
+  color: var(--error);
+}
+.sp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.settings-section .label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text3);
+}
+.user-card {
+  background: var(--surface2);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent), #a855f7);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+}
+.user-info {
+  flex: 1;
+}
+.user-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+.user-status {
+  font-size: 12px;
+  color: var(--text3);
+}
+.theme-buttons {
+  display: flex;
+  gap: 8px;
+}
+.theme-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 40px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 12px;
+}
+.theme-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.preset-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.preset-chip:hover, .preset-chip.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.sys-prompt-area {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  resize: vertical;
+  min-height: 100px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-card {
+  background: var(--surface2);
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent2);
+}
+.stat-label {
+  font-size: 10px;
+  color: var(--text3);
+}
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.action-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.2s;
+  color: var(--text2);
+}
+.action-btn.danger {
+  color: var(--error);
+}
+.action-btn:hover {
+  background: var(--surface3);
+  border-color: var(--accent);
 }
 
 /* ── MAIN CHAT ── */
@@ -433,7 +633,6 @@ body::before {
   gap: 20px;
   scroll-behavior: smooth;
 }
-/* Scroll to bottom button */
 .scroll-to-bottom {
   position: fixed;
   bottom: 90px;
@@ -464,7 +663,6 @@ body::before {
   background: var(--accent2);
   transform: scale(1.05);
 }
-/* Welcome */
 .welcome {
   flex: 1;
   display: flex;
@@ -516,7 +714,6 @@ body::before {
   background: var(--surface3);
   transform: translateY(-2px);
 }
-/* Messages */
 .message {
   display: flex;
   gap: 14px;
@@ -576,9 +773,6 @@ body::before {
   overflow: hidden;
   position: relative;
 }
-.code-block-wrapper {
-  position: relative;
-}
 .code-toolbar {
   position: sticky;
   top: 0;
@@ -618,7 +812,6 @@ body::before {
   background: transparent;
   color: var(--code-text);
 }
-/* Inline code */
 .bubble code:not(pre code) {
   background: var(--surface3);
   padding: 2px 6px;
@@ -626,7 +819,6 @@ body::before {
   font-size: 0.9em;
   color: var(--accent2);
 }
-/* syntax hljs */
 .hljs {
   background: transparent !important;
   color: var(--code-text) !important;
@@ -651,6 +843,21 @@ body::before {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
+}
+.ach {
+  background: var(--surface2);
+  border-radius: 40px;
+  padding: 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.ach-rm {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
 }
 .input-wrap {
   display: flex;
@@ -718,7 +925,6 @@ body::before {
   vertical-align: middle;
 }
 @keyframes blink { 50% { opacity: 0; } }
-/* Toast */
 .toast {
   position: fixed;
   bottom: 28px;
@@ -738,35 +944,6 @@ body::before {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
-/* Settings panel */
-.sp {
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 320px;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  transform: translateX(100%);
-  transition: 0.28s;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-}
-.sp.open {
-  transform: translateX(0);
-}
-.sp-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 55;
-}
-.sp-overlay.show {
-  display: block;
-}
-/* Other needed styles (modal, etc) kept minimal */
 </style>
 </head>
 <body>
@@ -774,10 +951,75 @@ body::before {
 <div class="toast" id="toastMsg"></div>
 <div class="scroll-to-bottom" id="scrollToBottomBtn" onclick="scrollChatToBottom()">↓</div>
 <div class="sp-overlay" id="spOverlay" onclick="closeSettings()"></div>
-<aside class="sp" id="settingsPanel"><!-- content as before, keep same structure but can simplify --></aside>
+
+<!-- Settings Panel (left side) -->
+<div class="sp" id="settingsPanel">
+  <div class="sp-header">
+    <h3>Settings</h3>
+    <button class="sp-close" onclick="closeSettings()">✕</button>
+  </div>
+  <div class="sp-body">
+    <!-- Account -->
+    <div class="settings-section">
+      <div class="label">Account</div>
+      <div class="user-card">
+        <div class="user-avatar" id="settingsAvatar">👤</div>
+        <div class="user-info">
+          <div class="user-name" id="settingsUsername">User</div>
+          <div class="user-status">Logged in</div>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="action-btn" onclick="doLogout()">Sign Out</button>
+        <button class="action-btn danger" onclick="showDeleteModal()">Delete Account</button>
+      </div>
+    </div>
+
+    <!-- Theme -->
+    <div class="settings-section">
+      <div class="label">Appearance</div>
+      <div class="theme-buttons">
+        <button class="theme-btn" id="themeSystem" onclick="setTheme('system')">⚙ System</button>
+        <button class="theme-btn" id="themeLight" onclick="setTheme('light')">☀️ Light</button>
+        <button class="theme-btn" id="themeDark" onclick="setTheme('dark')">🌙 Dark</button>
+      </div>
+    </div>
+
+    <!-- AI Persona -->
+    <div class="settings-section">
+      <div class="label">AI Persona / System Prompt</div>
+      <div class="preset-chips">
+        <div class="preset-chip active" data-prompt="You are Smartex, a helpful, friendly, and knowledgeable AI assistant. Be concise, clear, and supportive." onclick="applySystemPreset(this)">Default</div>
+        <div class="preset-chip" data-prompt="You are Smartex, an expert software engineer. Give precise, production-quality code with brief explanations." onclick="applySystemPreset(this)">Coder</div>
+        <div class="preset-chip" data-prompt="You are Smartex, a patient and encouraging tutor. Break down complex topics step by step." onclick="applySystemPreset(this)">Tutor</div>
+        <div class="preset-chip" data-prompt="You are Smartex, a creative writing partner. Help craft compelling stories." onclick="applySystemPreset(this)">Creative</div>
+      </div>
+      <textarea id="sysPrompt" class="sys-prompt-area" placeholder="Custom system prompt..."></textarea>
+      <button class="action-btn" onclick="saveSystemPrompt()">Save Prompt</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="settings-section">
+      <div class="label">Session Stats</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="statMsgs">0</div><div class="stat-label">Messages</div></div>
+        <div class="stat-card"><div class="stat-value" id="statModel">—</div><div class="stat-label">Current Model</div></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="settings-section">
+      <div class="label">Chat Actions</div>
+      <div class="action-buttons">
+        <button class="action-btn" onclick="clearCurrentChat()">Clear Current Chat</button>
+        <button class="action-btn danger" onclick="deleteAllChats()">Delete All Chats</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="layout">
-  <!-- Sidebar -->
+  <!-- History Sidebar -->
   <aside class="hs" id="hs">
     <div class="hs-top">
       <div class="logo-mark">✦</div>
@@ -790,12 +1032,12 @@ body::before {
     </div>
     <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
     <div class="chat-list" id="chatList"></div>
-    <div class="hs-bottom">
-      <button class="hib" id="settingsBtn" onclick="toggleSettings()">⚙</button>
+    <div class="settings-bar" id="settingsBarBtn" onclick="toggleSettings()">
+      ⚙ Settings
     </div>
   </aside>
 
-  <!-- Main chat -->
+  <!-- Main Chat -->
   <main class="main">
     <div class="topbar">
       <button class="tb-btn" onclick="toggleHS()">☰</button>
@@ -829,17 +1071,15 @@ body::before {
 const CURRENT_USER = "{{ username }}";
 const DISPLAY_NAME = CURRENT_USER ? CURRENT_USER[0].toUpperCase() + CURRENT_USER.slice(1) : "";
 let isLoading = false, chats = {}, activeChatId = null, attached = [];
-let currentStream = null;
-let userScrolledUp = false;   // flag for manual scroll
+let userScrolledUp = false;
 let streamingActive = false;
-let lastScrollTop = 0;
+let currentSystemPrompt = "You are Smartex, a helpful, friendly, and knowledgeable AI assistant. Be concise, clear, and supportive.";
 
-// DOM elements
 const chatContainer = document.getElementById('chatContainer');
 const scrollBtn = document.getElementById('scrollToBottomBtn');
 const searchInput = document.getElementById('searchChats');
 
-// Helper: show toast
+// Helper
 function showToast(msg, isErr=false) {
   const t = document.getElementById('toastMsg');
   t.textContent = msg;
@@ -862,23 +1102,18 @@ function scrollChatToBottom(smooth=true) {
 function onChatScroll() {
   const atBottom = isScrolledToBottom();
   if (!streamingActive) {
-    if (scrollBtn) scrollBtn.classList.toggle('show', !atBottom);
+    scrollBtn.classList.toggle('show', !atBottom);
     return;
   }
-  // during streaming, if user scrolls up, set flag
   if (!atBottom) {
     userScrolledUp = true;
-    if (scrollBtn) scrollBtn.classList.add('show');
+    scrollBtn.classList.add('show');
   } else {
     userScrolledUp = false;
-    if (scrollBtn) scrollBtn.classList.remove('show');
+    scrollBtn.classList.remove('show');
   }
 }
-
-// Attach scroll listener
-if (chatContainer) {
-  chatContainer.addEventListener('scroll', onChatScroll);
-}
+if (chatContainer) chatContainer.addEventListener('scroll', onChatScroll);
 
 // ── File attachments ─────────────────────────────────────────────────────────
 document.getElementById('attachBtn')?.addEventListener('click', () => document.getElementById('fi').click());
@@ -904,7 +1139,7 @@ function renderAttachPreview() {
   container.style.display = 'flex';
   container.innerHTML = attached.map((a,i) => `
     <div class="ach">
-      ${a.isImg ? `<img src="${a.dataUrl}" style="width:24px;height:24px;border-radius:6px;">` : '📄'}
+      ${a.isImg ? `<img src="${a.dataUrl}" style="width:20px;height:20px;border-radius:4px;">` : '📄'}
       <span>${escapeHtml(a.name)}</span>
       <button class="ach-rm" onclick="removeAttach(${i})">✕</button>
     </div>
@@ -956,10 +1191,10 @@ function deleteChat(id, e) {
   renderChatList();
 }
 function renderChatList() {
-  const searchTerm = searchInput?.value.toLowerCase() || '';
-  const listDiv = document.getElementById('chatList');
-  let filtered = Object.values(chats).filter(c => c.title.toLowerCase().includes(searchTerm));
+  const term = searchInput?.value.toLowerCase() || '';
+  let filtered = Object.values(chats).filter(c => c.title.toLowerCase().includes(term));
   filtered.sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+  const listDiv = document.getElementById('chatList');
   if (!filtered.length) { listDiv.innerHTML = '<div class="no-chats">No conversations</div>'; return; }
   listDiv.innerHTML = filtered.map(chat => `
     <div class="chat-item ${chat.id === activeChatId ? 'active' : ''}" onclick="switchToChat('${chat.id}')">
@@ -972,14 +1207,13 @@ function renderChatList() {
 function formatDate(ts) {
   if (!ts) return '';
   const d = new Date(ts);
-  const now = new Date();
-  const diff = now - d;
+  const diff = Date.now() - d;
   if (diff < 60000) return 'just now';
   if (diff < 3600000) return Math.floor(diff/60000)+'m ago';
   if (diff < 86400000) return Math.floor(diff/3600000)+'h ago';
   return d.toLocaleDateString();
 }
-function escapeHtml(s) { return String(s).replace(/[&<>]/g, function(m){if(m==='&')return '&amp;';if(m==='<')return '&lt;';if(m==='>')return '&gt;';return m;}); }
+function escapeHtml(s) { return String(s).replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
 
 // ── Message rendering with code toolbar ──────────────────────────────────────
 function processCodeBlocks(htmlContent) {
@@ -988,22 +1222,19 @@ function processCodeBlocks(htmlContent) {
   wrapper.querySelectorAll('pre').forEach(pre => {
     const code = pre.querySelector('code');
     if (!code) return;
-    const lang = code.className.match(/language-(\w+)/)?.[1] || 'txt';
     const codeText = code.innerText;
-    // create toolbar
     const toolbar = document.createElement('div');
     toolbar.className = 'code-toolbar';
     toolbar.innerHTML = `
       <button class="code-copy" data-code="${escapeHtml(codeText)}">📋 Copy</button>
-      <button class="code-download" data-code="${escapeHtml(codeText)}" data-lang="${lang}">💾 Download</button>
-      <button class="code-run" data-code="${escapeHtml(codeText)}" data-lang="${lang}">▶ Run</button>
+      <button class="code-download" data-code="${escapeHtml(codeText)}">💾 Download</button>
+      <button class="code-run" data-code="${escapeHtml(codeText)}">▶ Run</button>
     `;
     pre.prepend(toolbar);
-    // add event listeners
     toolbar.querySelector('.code-copy')?.addEventListener('click', (e) => {
       e.stopPropagation();
       navigator.clipboard.writeText(codeText);
-      showToast('Copied to clipboard');
+      showToast('Copied!');
     });
     toolbar.querySelector('.code-download')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1011,16 +1242,14 @@ function processCodeBlocks(htmlContent) {
       const a = document.createElement('a');
       const url = URL.createObjectURL(blob);
       a.href = url;
-      a.download = `code.${lang}`;
+      a.download = 'code.txt';
       a.click();
       URL.revokeObjectURL(url);
       showToast('Downloaded');
     });
     toolbar.querySelector('.code-run')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      // For now, just show a preview – we can later implement actual execution via backend or repl.
-      showToast(`Run: ${codeText.slice(0,50)}...`, false);
-      console.log(codeText);
+      showToast('Run feature (preview): ' + codeText.slice(0,60)+'...');
     });
   });
   return wrapper.innerHTML;
@@ -1039,7 +1268,7 @@ function appendMessage(role, content, meta='', atts=[]) {
     atts.forEach(a => {
       const el = document.createElement('div');
       el.className = 'ach';
-      if (a.isImg) el.innerHTML = `<img src="${a.dataUrl}" style="width:32px;height:32px;border-radius:6px;">`;
+      if (a.isImg) el.innerHTML = `<img src="${a.dataUrl}" style="width:24px;height:24px;border-radius:6px;">`;
       else el.innerHTML = `📄 ${escapeHtml(a.name)}`;
       attDiv.appendChild(el);
     });
@@ -1048,7 +1277,7 @@ function appendMessage(role, content, meta='', atts=[]) {
   if (role === 'ai') {
     const parsed = marked.parse(content);
     const processed = processCodeBlocks(parsed);
-    bubble.innerHTML = processed + `<div class="msg-meta"><span>${escapeHtml(meta)}</span></div>`;
+    bubble.innerHTML = processed + `<div class="msg-meta" style="font-size:10px;color:var(--text3);margin-top:8px;">${escapeHtml(meta)}</div>`;
   } else {
     bubble.innerText = content;
   }
@@ -1059,7 +1288,7 @@ function appendMessage(role, content, meta='', atts=[]) {
 function renderMessages() {
   const chat = chats[activeChatId];
   if (!chat || !chat.messages.length) {
-    chatContainer.innerHTML = `<div class="welcome" id="ws">
+    chatContainer.innerHTML = `<div class="welcome">
       <div class="wi">✦</div>
       <h2>Hello, ${escapeHtml(DISPLAY_NAME)}</h2>
       <p>Your AI assistant, powered by Smartex.</p>
@@ -1077,7 +1306,8 @@ function renderMessages() {
   }
   setTimeout(() => scrollChatToBottom(false), 50);
 }
-// ── Streaming send with no auto-scroll while user is up ──────────────────────
+
+// ── Streaming send (no auto-scroll when user scrolled up) ────────────────────
 async function sendMessage() {
   if (isLoading) return;
   const input = document.getElementById('msgInput');
@@ -1088,21 +1318,21 @@ async function sendMessage() {
   document.getElementById('sendBtn').disabled = true;
   document.getElementById('topStatus').innerText = 'Thinking...';
   document.getElementById('topDot').style.background = 'var(--warn)';
-  const userMsgText = text;
+  const userMsg = text;
   const curAtts = [...attached];
   input.value = '';
   attached = [];
   renderAttachPreview();
   const chat = chats[activeChatId];
   const isFirst = !chat.messages.length;
-  chat.messages.push({ role: 'user', content: userMsgText, atts: curAtts });
+  chat.messages.push({ role: 'user', content: userMsg, atts: curAtts });
   chat.updatedAt = Date.now();
   saveChats();
-  renderMessages(); // will re-render whole chat, but we'll append streaming after
-  // Remove welcome if present
+  renderMessages(); // re-render full chat
+  // remove welcome if present
   const welcome = document.getElementById('ws');
   if (welcome) welcome.remove();
-  // Add a new assistant bubble for streaming
+  // create streaming bubble
   const streamDiv = document.createElement('div');
   streamDiv.className = 'message ai';
   streamDiv.id = 'streamMsg';
@@ -1117,20 +1347,18 @@ async function sendMessage() {
   chatContainer.appendChild(streamDiv);
   scrollChatToBottom(true);
 
-  let full = '';
-  let raw = '';
-  let error = false;
+  let full = '', raw = '', error = false;
   streamingActive = true;
-  userScrolledUp = false; // reset on new send
+  userScrolledUp = false;
   const model = document.getElementById('modelSelect').value;
-  const sys = document.getElementById('sysPr')?.value || 'You are Smartex, a helpful AI assistant.';
+  const sys = document.getElementById('sysPrompt')?.value || currentSystemPrompt;
 
   try {
     const resp = await fetch('/chat/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: userMsgText,
+        message: userMsg,
         model,
         system_prompt: sys,
         chat_id: activeChatId,
@@ -1159,12 +1387,10 @@ async function sendMessage() {
             const parsedHtml = marked.parse(raw);
             const processed = processCodeBlocks(parsedHtml);
             contentDiv.innerHTML = processed;
-            // Only auto-scroll if user hasn't scrolled up
             if (!userScrolledUp && isScrolledToBottom()) {
               scrollChatToBottom(true);
             } else if (!userScrolledUp) {
-              // still show scroll button
-              if (scrollBtn) scrollBtn.classList.add('show');
+              scrollBtn.classList.add('show');
             }
           }
           if (j.done) full = j.full || raw;
@@ -1176,16 +1402,14 @@ async function sendMessage() {
     showToast(e.message, true);
   }
   streamingActive = false;
-  const finalReply = full || raw;
   document.getElementById('streamMsg')?.remove();
-  if (!error && finalReply) {
-    chat.messages.push({ role: 'ai', content: finalReply, meta: model.split('/').pop() });
+  if (!error && full) {
+    chat.messages.push({ role: 'ai', content: full, meta: model.split('/').pop() });
     chat.updatedAt = Date.now();
     saveChats();
     renderMessages();
-    if (isFirst) autoGenerateTitle(userMsgText);
+    if (isFirst) autoGenerateTitle(userMsg);
   } else if (error) {
-    // remove last user message from array
     chat.messages.pop();
     saveChats();
     renderMessages();
@@ -1195,11 +1419,10 @@ async function sendMessage() {
   document.getElementById('topStatus').innerText = 'Ready';
   document.getElementById('topDot').style.background = 'var(--success)';
   userScrolledUp = false;
-  if (scrollBtn) scrollBtn.classList.remove('show');
+  scrollBtn.classList.remove('show');
 }
-async function autoGenerateTitle(firstMsg) {
-  // simplified: set title based on first few words
-  const title = firstMsg.slice(0, 40) + (firstMsg.length>40 ? '…' : '');
+function autoGenerateTitle(msg) {
+  const title = msg.slice(0,40) + (msg.length>40?'…':'');
   if (chats[activeChatId]) {
     chats[activeChatId].title = title;
     saveChats();
@@ -1211,12 +1434,15 @@ function sendSuggestion(txt) {
   document.getElementById('msgInput').value = txt;
   sendMessage();
 }
-// ── Theme, settings, helpers ─────────────────────────────────────────────────
+
+// ── Settings UI ──────────────────────────────────────────────────────────────
 function setTheme(t) {
   localStorage.setItem('sx_theme', t);
   const html = document.documentElement;
   if (t === 'system') html.removeAttribute('data-theme');
   else html.setAttribute('data-theme', t);
+  document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`theme${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.add('active');
 }
 function loadTheme() { setTheme(localStorage.getItem('sx_theme') || 'system'); }
 function toggleHS() {
@@ -1234,6 +1460,55 @@ function closeSettings() {
   document.getElementById('settingsPanel')?.classList.remove('open');
   document.getElementById('spOverlay')?.classList.remove('show');
 }
+function applySystemPreset(el) {
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const prompt = el.getAttribute('data-prompt');
+  document.getElementById('sysPrompt').value = prompt;
+  currentSystemPrompt = prompt;
+}
+function saveSystemPrompt() {
+  currentSystemPrompt = document.getElementById('sysPrompt').value;
+  showToast('System prompt saved');
+}
+async function doLogout() {
+  await fetch('/api/logout', { method:'POST' });
+  window.location.href = '/auth';
+}
+function showDeleteModal() {
+  if (confirm('Delete your account and all data? This cannot be undone.')) {
+    fetch('/api/delete-account', { method:'POST' }).then(() => window.location.href='/auth');
+  }
+}
+function clearCurrentChat() {
+  if (!activeChatId || !chats[activeChatId]) return;
+  chats[activeChatId].messages = [];
+  chats[activeChatId].title = 'New Chat';
+  chats[activeChatId].updatedAt = Date.now();
+  saveChats();
+  renderChatList();
+  renderMessages();
+  document.getElementById('topTitle').innerText = '';
+  closeSettings();
+  showToast('Current chat cleared');
+}
+function deleteAllChats() {
+  if (!confirm('Delete ALL conversations? This cannot be undone.')) return;
+  chats = {};
+  saveChats();
+  createNewChat();
+  showToast('All chats deleted');
+  closeSettings();
+}
+// update stats
+function updateStats() {
+  const chat = chats[activeChatId];
+  if (chat) document.getElementById('statMsgs').innerText = chat.messages.length;
+  const model = document.getElementById('modelSelect').value;
+  document.getElementById('statModel').innerText = model.split('/').pop().slice(0,12);
+}
+setInterval(updateStats, 1000);
+
 // load models
 async function loadModels() {
   try {
@@ -1242,27 +1517,32 @@ async function loadModels() {
     const models = d.models || [];
     const sel = document.getElementById('modelSelect');
     sel.innerHTML = '';
-    const defaultModel = localStorage.getItem('sx_model') || (models[0]?.id || '');
+    const saved = localStorage.getItem('sx_model');
     models.forEach(m => {
       const opt = document.createElement('option');
       opt.value = m.id;
       opt.innerText = m.name;
       sel.appendChild(opt);
     });
-    if (defaultModel && sel.querySelector(`option[value="${defaultModel}"]`)) sel.value = defaultModel;
+    if (saved && sel.querySelector(`option[value="${saved}"]`)) sel.value = saved;
+    else if (sel.options.length) sel.value = sel.options[0].value;
     sel.addEventListener('change', () => localStorage.setItem('sx_model', sel.value));
   } catch(e) { console.error(e); }
 }
+
+// init events
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 document.getElementById('msgInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 document.getElementById('fi').addEventListener('change', onFiles);
 searchInput?.addEventListener('input', () => renderChatList());
-// init
+document.getElementById('settingsBarBtn').addEventListener('click', toggleSettings);
+// load user info
+document.getElementById('settingsUsername').innerText = DISPLAY_NAME;
+document.getElementById('settingsAvatar').innerText = CURRENT_USER?.[0]?.toUpperCase() || '👤';
+
+// start
 loadTheme();
 loadModels();
 loadChats();
