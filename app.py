@@ -11,9 +11,15 @@ import threading
 import time
 import requests
 import streamlit as st
-from dotenv import load_dotenv
 
-load_dotenv()
+# Optional dotenv for local development; ignore if not installed (e.g., on Render)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not installed – assume environment variables are set manually
+    pass
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -258,36 +264,33 @@ st.markdown("""
 
 
 # ─────────────────────────────────────────────
-# Helper Functions (unchanged)
+# Helper Functions (short timeouts for Render)
 # ─────────────────────────────────────────────
 def get_ollama_models() -> list:
     try:
-        r = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
+        r = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=0.5)
         if r.status_code == 200:
             return [m["name"] for m in r.json().get("models", [])]
         return []
     except Exception:
         return []
 
-
 def is_ollama_running() -> bool:
     try:
-        requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=3)
+        requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=0.5)
         return True
     except Exception:
         return False
 
-
 def is_groq_configured() -> bool:
     return bool(GROQ_API_KEY and GROQ_API_KEY != "your_groq_api_key_here")
-
 
 def is_groq_model(model_name: str) -> bool:
     return model_name in GROQ_MODELS
 
 
 # ─────────────────────────────────────────────
-# API Calls (unchanged)
+# API Calls (run in threads)
 # ─────────────────────────────────────────────
 def chat_with_groq(messages: list, model: str, temperature: float, result: dict):
     try:
@@ -310,7 +313,6 @@ def chat_with_groq(messages: list, model: str, temperature: float, result: dict)
         else:
             result["error"] = f"❌ Groq error: {msg}"
         result["done"] = True
-
 
 def chat_with_ollama(messages: list, model: str, temperature: float, result: dict):
     try:
@@ -352,7 +354,7 @@ def chat_with_ollama(messages: list, model: str, temperature: float, result: dic
 
 
 # ─────────────────────────────────────────────
-# Session State (unchanged)
+# Session State
 # ─────────────────────────────────────────────
 def init_state():
     if "messages" not in st.session_state:
@@ -370,7 +372,7 @@ def init_state():
 
 
 # ─────────────────────────────────────────────
-# Sidebar (unchanged logic, only CSS adapted)
+# Sidebar
 # ─────────────────────────────────────────────
 def render_sidebar():
     with st.sidebar:
@@ -385,7 +387,7 @@ def render_sidebar():
         else:
             st.markdown(f'<div class="model-badge">▶ {current}</div>', unsafe_allow_html=True)
 
-        # Groq Models
+        # ── Groq Models ──
         st.markdown('<div class="sidebar-section">☁ Groq Models (Best performance)</div>', unsafe_allow_html=True)
 
         if is_groq_configured():
@@ -404,7 +406,7 @@ def render_sidebar():
         else:
             st.warning("Groq not configured.\nAdd to `.env`:\n`GROQ_API_KEY=gsk_...`\nGet free key: console.groq.com")
 
-        # Ollama Models
+        # ── Ollama Models ──
         st.markdown('<div class="sidebar-section">💻 Local Ollama Models</div>', unsafe_allow_html=True)
 
         ollama_models = get_ollama_models()
@@ -427,7 +429,7 @@ def render_sidebar():
         else:
             st.info("No local models found.\nRun: `ollama pull phi3`")
 
-        # Settings
+        # ── Settings ──
         st.markdown('<div class="sidebar-section">Settings</div>', unsafe_allow_html=True)
 
         st.session_state.temperature = st.slider(
@@ -452,7 +454,7 @@ def render_sidebar():
                 st.session_state.system_prompt = DEFAULT_SYSTEM_PROMPT
                 st.rerun()
 
-        # Actions
+        # ── Actions ──
         st.markdown('<div class="sidebar-section">Actions</div>', unsafe_allow_html=True)
         if st.button("🗑️ Clear Chat", use_container_width=True):
             st.session_state.messages = []
@@ -468,7 +470,7 @@ def render_sidebar():
 
 
 # ─────────────────────────────────────────────
-# Main Chat (provider bar uses theme variables)
+# Main Chat
 # ─────────────────────────────────────────────
 def render_chat():
     model = st.session_state.get("selected_model", "")
@@ -477,7 +479,6 @@ def render_chat():
     provider = "☁ Groq Cloud" if is_groq else "💻 Local Ollama"
     color = "#818cf8" if is_groq else "var(--st-color-primary)"
 
-    # Use theme-aware inline style (no hardcoded colors except brand accent)
     st.markdown(
         f'<div style="font-family: IBM Plex Mono; font-size: 0.78rem; color: var(--st-color-text-secondary); margin-bottom: 1rem;">'
         f'<span style="color:{color}">{provider}</span> · '
@@ -517,7 +518,7 @@ def render_chat():
 
 
 # ─────────────────────────────────────────────
-# Handle Message (unchanged)
+# Handle Message
 # ─────────────────────────────────────────────
 def handle_message(question: str):
     model = st.session_state.get("selected_model", "")
