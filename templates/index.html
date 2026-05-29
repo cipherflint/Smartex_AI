@@ -97,7 +97,6 @@ body {
   transition: transform 0.25s ease;
   z-index: 20;
   position: relative;
-  flex-shrink: 0;
 }
 .sidebar.collapsed {
   transform: translateX(-100%);
@@ -221,6 +220,11 @@ body {
   justify-content: center;
   gap: 8px;
   font-size: 13px;
+  transition: 0.2s;
+}
+.settings-btn:hover {
+  background: var(--accent-glow);
+  color: var(--accent);
 }
 
 /* Main chat area */
@@ -254,7 +258,7 @@ body {
   border-radius: 6px;
 }
 .menu-toggle:hover { background: var(--bg-tertiary); }
-/* Model dropdown – styled like a modern pill */
+/* Model dropdown – modern pill style */
 .model-selector {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
@@ -721,7 +725,7 @@ textarea.system-prompt {
 <body>
 
 <div class="toast" id="toastMsg"></div>
-<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="overlay" id="overlay" onclick="handleOverlayClick()"></div>
 <div class="scroll-btn" id="scrollBtn" onclick="scrollChatToBottom()">↓</div>
 
 <!-- Settings Panel -->
@@ -776,7 +780,7 @@ textarea.system-prompt {
     </div>
     <div class="chat-history" id="chatHistory"></div>
     <div class="sidebar-footer">
-      <button class="settings-btn" onclick="openSettings()">⚙ Settings</button>
+      <button class="settings-btn" id="settingsSidebarBtn">⚙ Settings</button>
     </div>
   </div>
 
@@ -833,6 +837,10 @@ const sendBtn = document.getElementById('sendBtn');
 const attachBtn = document.getElementById('attachBtn');
 const fileInput = document.getElementById('fileInput');
 const searchInput = document.getElementById('searchInput');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const menuToggle = document.getElementById('menuToggleBtn');
+const settingsSidebarBtn = document.getElementById('settingsSidebarBtn');
 
 // Theme handling (purple/blue accent in both modes)
 function setTheme(theme) {
@@ -882,37 +890,50 @@ chatContainer.addEventListener('scroll', () => {
   }
 });
 
-// Sidebar toggle (fixed)
+// Sidebar toggle (works on both desktop and mobile)
 function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay');
-  if (window.innerWidth <= 768) {
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
     sidebar.classList.toggle('open');
     overlay.classList.toggle('show');
   } else {
     sidebar.classList.toggle('collapsed');
-    if (sidebar.classList.contains('collapsed')) {
-      overlay.classList.remove('show');
-    } else {
-      overlay.classList.remove('show');
-    }
+    // ensure no overlay on desktop
+    overlay.classList.remove('show');
   }
 }
 function closeSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay');
   sidebar.classList.remove('open');
   sidebar.classList.remove('collapsed');
   overlay.classList.remove('show');
 }
-// Settings
+function handleOverlayClick() {
+  closeSidebar();
+  closeSettings();
+}
+// Settings panel toggle (works on all devices)
 function openSettings() {
-  document.getElementById('settingsPanel').classList.add('open');
-  document.getElementById('overlay').classList.add('show');
+  const settingsPanel = document.getElementById('settingsPanel');
+  settingsPanel.classList.add('open');
+  overlay.classList.add('show');
 }
 function closeSettings() {
-  document.getElementById('settingsPanel').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
+  const settingsPanel = document.getElementById('settingsPanel');
+  settingsPanel.classList.remove('open');
+  overlay.classList.remove('show');
+}
+// Event listeners for buttons
+if (menuToggle) {
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSidebar();
+  });
+}
+if (settingsSidebarBtn) {
+  settingsSidebarBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openSettings();
+  });
 }
 
 // File attachments
@@ -1297,16 +1318,6 @@ messageInput.addEventListener('keydown', (e) => {
 });
 sendBtn.addEventListener('click', sendMessage);
 searchInput.addEventListener('input', () => renderChatList());
-
-// Sidebar toggle button event listener
-const menuToggle = document.getElementById('menuToggleBtn');
-if (menuToggle) {
-  menuToggle.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleSidebar();
-  });
-}
 
 // Init
 loadModels();
