@@ -18,7 +18,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
 /* ════════════════════════════════════════════════════════════════════════════ */
-/* THEME TOKENS – modern, refined */
+/* THEME TOKENS */
 /* ════════════════════════════════════════════════════════════════════════════ */
 :root {
   --bg: #0b0b12;
@@ -295,7 +295,6 @@ body::before {
   background: rgba(255,79,106,0.15);
   color: var(--error);
 }
-/* Settings bar at bottom – full width rectangular */
 .settings-bar {
   margin: 12px 12px 16px;
   padding: 10px;
@@ -320,7 +319,6 @@ body::before {
 .hs-close-btn {
   display: none;
 }
-/* mobile */
 @media (max-width: 800px) {
   .hs {
     position: fixed;
@@ -717,13 +715,18 @@ body::before {
 .message {
   display: flex;
   gap: 14px;
-  max-width: 85%;
+  max-width: 90%; /* increased from 85% for better code width */
   align-self: flex-start;
   animation: fadeSlideUp 0.3s ease;
 }
 .message.user {
   align-self: flex-end;
   flex-direction: row-reverse;
+}
+@media (min-width: 1024px) {
+  .message {
+    max-width: 95%; /* even wider on desktop */
+  }
 }
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(12px);}
@@ -753,6 +756,8 @@ body::before {
   line-height: 1.6;
   font-size: 14px;
   position: relative;
+  min-width: 0; /* allow shrinking */
+  overflow-x: auto; /* horizontal scroll for wide content */
 }
 .bubble.ai {
   background: var(--ai-bubble);
@@ -770,8 +775,9 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 14px;
   margin: 12px 0;
-  overflow: hidden;
+  overflow: auto; /* enable scroll inside pre */
   position: relative;
+  max-width: 100%;
 }
 .code-toolbar {
   position: sticky;
@@ -811,6 +817,7 @@ body::before {
   overflow-x: auto;
   background: transparent;
   color: var(--code-text);
+  white-space: pre;
 }
 .bubble code:not(pre code) {
   background: var(--surface3);
@@ -959,7 +966,6 @@ body::before {
     <button class="sp-close" onclick="closeSettings()">✕</button>
   </div>
   <div class="sp-body">
-    <!-- Account -->
     <div class="settings-section">
       <div class="label">Account</div>
       <div class="user-card">
@@ -974,8 +980,6 @@ body::before {
         <button class="action-btn danger" onclick="showDeleteModal()">Delete Account</button>
       </div>
     </div>
-
-    <!-- Theme -->
     <div class="settings-section">
       <div class="label">Appearance</div>
       <div class="theme-buttons">
@@ -984,8 +988,6 @@ body::before {
         <button class="theme-btn" id="themeDark" onclick="setTheme('dark')">🌙 Dark</button>
       </div>
     </div>
-
-    <!-- AI Persona -->
     <div class="settings-section">
       <div class="label">AI Persona / System Prompt</div>
       <div class="preset-chips">
@@ -997,8 +999,6 @@ body::before {
       <textarea id="sysPrompt" class="sys-prompt-area" placeholder="Custom system prompt..."></textarea>
       <button class="action-btn" onclick="saveSystemPrompt()">Save Prompt</button>
     </div>
-
-    <!-- Stats -->
     <div class="settings-section">
       <div class="label">Session Stats</div>
       <div class="stats-grid">
@@ -1006,8 +1006,6 @@ body::before {
         <div class="stat-card"><div class="stat-value" id="statModel">—</div><div class="stat-label">Current Model</div></div>
       </div>
     </div>
-
-    <!-- Actions -->
     <div class="settings-section">
       <div class="label">Chat Actions</div>
       <div class="action-buttons">
@@ -1019,7 +1017,6 @@ body::before {
 </div>
 
 <div class="layout">
-  <!-- History Sidebar -->
   <aside class="hs" id="hs">
     <div class="hs-top">
       <div class="logo-mark">✦</div>
@@ -1032,12 +1029,8 @@ body::before {
     </div>
     <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
     <div class="chat-list" id="chatList"></div>
-    <div class="settings-bar" id="settingsBarBtn">
-      ⚙ Settings
-    </div>
+    <div class="settings-bar" id="settingsBarBtn">⚙ Settings</div>
   </aside>
-
-  <!-- Main Chat -->
   <main class="main">
     <div class="topbar">
       <button class="tb-btn" onclick="toggleHS()">☰</button>
@@ -1333,7 +1326,6 @@ async function sendMessage() {
   chat.updatedAt = Date.now();
   saveChats();
   renderMessages(); // re-render full chat
-  // remove welcome if present
   const welcome = document.getElementById('ws');
   if (welcome) welcome.remove();
   // create streaming bubble
@@ -1505,7 +1497,6 @@ function deleteAllChats() {
   showToast('All chats deleted');
   closeSettings();
 }
-// update stats
 function updateStats() {
   const chat = chats[activeChatId];
   if (chat) document.getElementById('statMsgs').innerText = chat.messages.length;
@@ -1543,7 +1534,6 @@ document.getElementById('msgInput').addEventListener('keydown', (e) => {
 document.getElementById('fi').addEventListener('change', onFiles);
 searchInput?.addEventListener('input', () => renderChatList());
 
-// Fix settings button listener
 const settingsBarBtn = document.getElementById('settingsBarBtn');
 if (settingsBarBtn) {
   settingsBarBtn.addEventListener('click', (e) => {
@@ -1552,11 +1542,9 @@ if (settingsBarBtn) {
   });
 }
 
-// load user info
 document.getElementById('settingsUsername').innerText = DISPLAY_NAME;
 document.getElementById('settingsAvatar').innerText = CURRENT_USER?.[0]?.toUpperCase() || '👤';
 
-// start
 loadTheme();
 loadModels();
 loadChats();
