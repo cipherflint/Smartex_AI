@@ -1032,7 +1032,7 @@ body::before {
     </div>
     <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
     <div class="chat-list" id="chatList"></div>
-    <div class="settings-bar" id="settingsBarBtn" onclick="toggleSettings()">
+    <div class="settings-bar" id="settingsBarBtn">
       ⚙ Settings
     </div>
   </aside>
@@ -1054,7 +1054,11 @@ body::before {
         <div class="input-wrap">
           <textarea class="msg-ta" id="msgInput" placeholder="Message Smartex..." rows="1"></textarea>
           <div class="ia">
-            <button class="iib" id="attachBtn">📎</button>
+            <button class="iib" id="attachBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13.5 3.5L6 11a5 5 0 0 0 7 7l7.5-7.5a3 3 0 0 0-4.24-4.24L9 13.5a1 1 0 0 0 1.41 1.41L15 10"/>
+              </svg>
+            </button>
             <input type="file" id="fi" multiple style="display:none">
             <button class="send-btn" id="sendBtn">➤</button>
           </div>
@@ -1442,7 +1446,8 @@ function setTheme(t) {
   if (t === 'system') html.removeAttribute('data-theme');
   else html.setAttribute('data-theme', t);
   document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-  document.getElementById(`theme${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.add('active');
+  const btnId = `theme${t.charAt(0).toUpperCase() + t.slice(1)}`;
+  document.getElementById(btnId)?.classList.add('active');
 }
 function loadTheme() { setTheme(localStorage.getItem('sx_theme') || 'system'); }
 function toggleHS() {
@@ -1537,7 +1542,16 @@ document.getElementById('msgInput').addEventListener('keydown', (e) => {
 });
 document.getElementById('fi').addEventListener('change', onFiles);
 searchInput?.addEventListener('input', () => renderChatList());
-document.getElementById('settingsBarBtn').addEventListener('click', toggleSettings);
+
+// Fix settings button listener
+const settingsBarBtn = document.getElementById('settingsBarBtn');
+if (settingsBarBtn) {
+  settingsBarBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSettings();
+  });
+}
+
 // load user info
 document.getElementById('settingsUsername').innerText = DISPLAY_NAME;
 document.getElementById('settingsAvatar').innerText = CURRENT_USER?.[0]?.toUpperCase() || '👤';
