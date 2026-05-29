@@ -97,6 +97,7 @@ body {
   transition: transform 0.25s ease;
   z-index: 20;
   position: relative;
+  flex-shrink: 0;
 }
 .sidebar.collapsed {
   transform: translateX(-100%);
@@ -781,7 +782,7 @@ textarea.system-prompt {
 
   <div class="main">
     <div class="top-bar">
-      <button class="menu-toggle" id="menuToggleBtn" onclick="toggleSidebar()">☰</button>
+      <button class="menu-toggle" id="menuToggleBtn">☰</button>
       <select id="modelSelect" class="model-selector"></select>
       <div class="right-actions">
         <button class="icon-btn" onclick="newChat()">+</button>
@@ -890,7 +891,6 @@ function toggleSidebar() {
     overlay.classList.toggle('show');
   } else {
     sidebar.classList.toggle('collapsed');
-    // on desktop, we also manage overlay just for clarity
     if (sidebar.classList.contains('collapsed')) {
       overlay.classList.remove('show');
     } else {
@@ -902,7 +902,7 @@ function closeSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   sidebar.classList.remove('open');
-  sidebar.classList.remove('collapsed'); // reset to visible on desktop
+  sidebar.classList.remove('collapsed');
   overlay.classList.remove('show');
 }
 // Settings
@@ -1298,10 +1298,11 @@ messageInput.addEventListener('keydown', (e) => {
 sendBtn.addEventListener('click', sendMessage);
 searchInput.addEventListener('input', () => renderChatList());
 
-// Ensure menuToggleBtn exists and call toggleSidebar
+// Sidebar toggle button event listener
 const menuToggle = document.getElementById('menuToggleBtn');
 if (menuToggle) {
   menuToggle.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
     toggleSidebar();
   });
